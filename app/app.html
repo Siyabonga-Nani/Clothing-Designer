@@ -1,0 +1,1958 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Clothing Designer</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
+
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: #0b0f19;
+            color: #e2e8f0;
+        }
+
+        /* TOP BAR */
+        #topbar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            height: 48px;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            z-index: 10;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .topbar-left h2 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        .topbar-center {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .divider {
+            width: 1px;
+            height: 24px;
+            background: rgba(255,255,255,0.1);
+            margin: 0 4px;
+        }
+
+        .view-btn {
+            background: transparent;
+            border: none;
+            padding: 8px 16px;
+            color: #94a3b8;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
+
+        .view-btn:hover {
+            color: #e2e8f0;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .view-btn.active {
+            color: #fff;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.5);
+        }
+
+        .icon-btn-text {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
+
+        .icon-btn-text:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
+
+        /* TOOLBAR (Left) */
+        .toolbar {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            width: 64px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+
+        .toolbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .toolbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
+
+        .toolbar-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .toolbar-group:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .icon-btn {
+            background: transparent;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            color: #94a3b8;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .icon-btn:hover {
+            color: #e2e8f0;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .icon-btn.active {
+            color: #fff;
+            background: #6366f1;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+        }
+
+        /* Premium Tooltip System */
+        .premium-tooltip {
+            position: fixed;
+            z-index: 1000;
+            padding: 8px 12px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.95) translateY(5px);
+            transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .premium-tooltip.visible {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
+
+        .premium-tooltip::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: inherit;
+            border: inherit;
+            border-bottom: none;
+            border-right: none;
+            transform: rotate(45deg);
+            display: none; /* Hidden by default, shown based on position */
+        }
+
+        /* INSPECTOR (Right) */
+        .inspector-panel {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            width: 260px;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 10;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .inspector-panel h3 {
+            margin: 0 0 4px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        .inspector-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
+
+        .inspector-group label {
+            font-size: 11px;
+            font-weight: 500;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .inspector-group input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 8px;
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .inspector-group input:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+        /* CANVAS FULLSCREEN */
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0b0f19;
+            cursor: crosshair;
+            z-index: 1;
+        }
+
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
+
+        .modal-content {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            width: 500px;
+            max-width: 90vw;
+            padding: 24px;
+            color: #e2e8f0;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
+
+        .modal-content h2 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+
+        .modal-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .modal-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .modal-group input, .modal-group select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
+
+        .modal-group input:focus, .modal-group select:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
+
+        .modal-group select {
+            appearance: none;
+            cursor: pointer;
+        }
+
+        .modal-btn {
+            width: 100%;
+            background: #6366f1;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 8px;
+        }
+
+        .modal-btn:hover {
+            background: #4f46e5;
+        }
+
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .modal-close:hover {
+            color: #fff;
+        }
+
+        .help-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
+
+        .help-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .help-item strong {
+            display: block;
+            color: #6366f1;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
+
+        .help-item p {
+            margin: 0;
+            font-size: 12px;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="topbar">
+        <div class="topbar-left">
+            <h2>Clothing Designer</h2>
+        </div>
+        
+        <div class="topbar-center">
+            <button onclick="setView('Front')" id="view_Front" class="view-btn active" data-tooltip="Front (1)">Front</button>
+            <button onclick="setView('Back')" id="view_Back" class="view-btn" data-tooltip="Back (2)">Back</button>
+            <button onclick="setView('Side')" id="view_Side" class="view-btn" data-tooltip="Side (3)">Side</button>
+            <div class="divider"></div>
+            <div id="size_selector" style="display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                <button onclick="setSize('XS')" class="view-btn" style="padding: 4px 8px; font-size: 11px;" id="size_XS">XS</button>
+                <button onclick="setSize('S')" class="view-btn" style="padding: 4px 8px; font-size: 11px;" id="size_S">S</button>
+                <button onclick="setSize('M')" class="view-btn active" style="padding: 4px 8px; font-size: 11px;" id="size_M">M</button>
+                <button onclick="setSize('L')" class="view-btn" style="padding: 4px 8px; font-size: 11px;" id="size_L">L</button>
+                <button onclick="setSize('XL')" class="view-btn" style="padding: 4px 8px; font-size: 11px;" id="size_XL">XL</button>
+                <button onclick="setSize('XXL')" class="view-btn" style="padding: 4px 8px; font-size: 11px;" id="size_XXL">XXL</button>
+            </div>
+            <div class="divider"></div>
+            <button id="toggle_ghost" class="view-btn active" onclick="toggleGhost()" data-tooltip="Ghosting (H)">Ghosting: ON</button>
+            <div class="divider"></div>
+            <button id="toggle_3d" class="view-btn" onclick="toggle3D()" data-tooltip="3D View (4)">3D View</button>
+        </div>
+        
+        <div class="topbar-right">
+            <button onclick="saveProject()" class="icon-btn-text" data-tooltip="Save Project"><span class="material-symbols-outlined">save</span></button>
+            <button onclick="document.getElementById('fileUpload').click()" class="icon-btn-text" data-tooltip="Load Project"><span class="material-symbols-outlined">folder_open</span></button>
+            <button onclick="showHelp()" class="icon-btn-text" data-tooltip="Help Guide"><span class="material-symbols-outlined">help</span></button>
+            <input type="file" id="fileUpload" accept=".json" style="display: none;" onchange="loadProject(event)">
+        </div>
+    </div>
+
+    <!-- HELP MODAL -->
+    <div id="helpModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="hideHelp()"><span class="material-symbols-outlined">close</span></button>
+            <h2>Tools Guide</h2>
+            <div class="help-list">
+                <div class="help-item">
+                    <strong>Undo / Redo (Ctrl+Z / Ctrl+Y)</strong>
+                    <p>Standard shortcuts to reverse or re-apply your last actions.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Draw (D)</strong>
+                    <p>Click to add points. They automatically connect into segments.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Move (M) & Select (S)</strong>
+                    <p>Drag to adjust. <strong>Hold Shift/Ctrl</strong> to select and move multiple points at once.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Smooth Bending (M/B)</strong>
+                    <p>Moving an anchor point also moves its handles, preserving local curve smoothness.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Grading (E) & Sizes</strong>
+                    <p>Define X/Y increments in the Inspector. Toggle <strong>XS-XXL</strong> in the Topbar to see scaling.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Cut Segment (C)</strong>
+                    <p>Split any line into two independent segments.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Curve (B)</strong>
+                    <p>Click any segment to add Bezier handles. Drag handles to refine shape.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Mirror (I)</strong>
+                    <p>Reflect your pattern across a selected line (e.g., Center Front).</p>
+                </div>
+                <div class="help-item">
+                    <strong>3D View (4)</strong>
+                    <p>Left-Drag to Rotate, Right-Drag to Pan. Click an anchor to snap focus.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Measure (R)</strong>
+                    <p>Drag between points to see exact production distances.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Fabric (F)</strong>
+                    <p>Click 4 points to place a fabric piece. Select it to change type or cut it to the pattern.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SAVE MODAL -->
+    <div id="saveModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <button class="modal-close" onclick="hideSave()"><span class="material-symbols-outlined">close</span></button>
+            <h2>Save Project</h2>
+            
+            <div class="modal-group">
+                <label>Project Name</label>
+                <input type="text" id="exportName" value="My Pattern" placeholder="e.g. Summer Dress">
+            </div>
+            
+            <div class="modal-group">
+                <label>Export Format</label>
+                <select id="exportFormat">
+                    <option value="json">.JSON (Editable Workspace)</option>
+                    <option value="svg">.SVG (Vector Graphic / Plotter)</option>
+                    <option value="png">.PNG (Image Snapshot)</option>
+                </select>
+            </div>
+            
+            <button class="modal-btn" onclick="executeSave()">Download</button>
+        </div>
+    </div>
+
+    <div class="toolbar" id="leftbar">
+        <div class="toolbar-group">
+            <button onclick="setTool('draw')" id="tool_draw" class="icon-btn active" data-tooltip="Draw (D)"><span class="material-symbols-outlined">edit</span></button>
+            <button onclick="setTool('select')" id="tool_select" class="icon-btn" data-tooltip="Select (S)"><span class="material-symbols-outlined">ads_click</span></button>
+            <button onclick="setTool('move')" id="tool_move" class="icon-btn" data-tooltip="Move (M)"><span class="material-symbols-outlined">drag_pan</span></button>
+            <button onclick="setTool('delete')" id="tool_delete" class="icon-btn" data-tooltip="Delete (X)"><span class="material-symbols-outlined">delete</span></button>
+        </div>
+
+        <div class="toolbar-group">
+            <button onclick="setTool('addPoint')" id="tool_addPoint" class="icon-btn" data-tooltip="Add Point (P)"><span class="material-symbols-outlined">add_circle</span></button>
+            <button onclick="setTool('name')" id="tool_name" class="icon-btn" data-tooltip="Name Point (N)"><span class="material-symbols-outlined">label</span></button>
+            <button onclick="setTool('align')" id="tool_align" class="icon-btn" data-tooltip="Align Point (A)"><span class="material-symbols-outlined">align_horizontal_center</span></button>
+        </div>
+
+        <div class="toolbar-group">
+            <button onclick="setTool('segment')" id="tool_segment" class="icon-btn" data-tooltip="Create Segment (L)"><span class="material-symbols-outlined">horizontal_rule</span></button>
+            <button onclick="setTool('cut')" id="tool_cut" class="icon-btn" data-tooltip="Cut Segment (C)"><span class="material-symbols-outlined">content_cut</span></button>
+            <button onclick="setTool('measure')" id="tool_measure" class="icon-btn" data-tooltip="Measure (R)"><span class="material-symbols-outlined">straighten</span></button>
+        </div>
+
+        <div class="toolbar-group">
+            <button onclick="setTool('seam')" id="tool_seam" class="icon-btn" data-tooltip="Seam Allowance (O)"><span class="material-symbols-outlined">layers</span></button>
+            <button onclick="setTool('notch')" id="tool_notch" class="icon-btn" data-tooltip="Add Notch (T)"><span class="material-symbols-outlined">shape_line</span></button>
+            <button onclick="setTool('grain')" id="tool_grain" class="icon-btn" data-tooltip="Grainline (G)"><span class="material-symbols-outlined">open_in_full</span></button>
+            <button onclick="setTool('grade')" id="tool_grade" class="icon-btn" data-tooltip="Grading (E)"><span class="material-symbols-outlined">photo_size_select_small</span></button>
+        </div>
+
+        <div class="toolbar-group">
+            <button onclick="setTool('curve')" id="tool_curve" class="icon-btn" data-tooltip="Curve (B)"><span class="material-symbols-outlined">gesture</span></button>
+            <button onclick="setTool('mirror')" id="tool_mirror" class="icon-btn" data-tooltip="Mirror (I)"><span class="material-symbols-outlined">flip</span></button>
+            <button onclick="setTool('text')" id="tool_text" class="icon-btn" data-tooltip="Text (V)"><span class="material-symbols-outlined">text_fields</span></button>
+            <button onclick="setTool('fabric')" id="tool_fabric" class="icon-btn" data-tooltip="Fabric (F)"><span class="material-symbols-outlined">texture</span></button>
+        </div>
+    </div>
+
+    <div class="inspector-panel" id="rightbar">
+        <h3>Properties</h3>
+        <div id="inspector">
+            <div style="color:#64748b; font-size:12px;">Nothing selected</div>
+        </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resize);
+        resize();
+
+        /* =========================
+           CAMERA & 3D ENGINE
+        ========================= */
+        let camX = 0, camY = 0, zoom = 1;
+        let is3D = false;
+        let camYaw = 0;
+        let camPitch = 0;
+
+        function toggle3D() {
+            is3D = !is3D;
+            document.getElementById("toggle_3d").classList.toggle("active", is3D);
+            if (is3D) {
+                camYaw = Math.PI / 4;
+                camPitch = Math.PI / 6;
+                zoom = 0.5;
+            } else {
+                camYaw = 0;
+                camPitch = 0;
+                zoom = 1;
+            }
+        }
+
+        function project3D(x, y, z) {
+            let dx = x - camX;
+            let dy = y - camY;
+            let dz = z;
+
+            let cosY = Math.cos(camYaw);
+            let sinY = Math.sin(camYaw);
+            let x1 = dx * cosY - dz * sinY;
+            let z1 = dx * sinY + dz * cosY;
+
+            let cosP = Math.cos(camPitch);
+            let sinP = Math.sin(camPitch);
+            let y2 = dy * cosP - z1 * sinP;
+            let z2 = dy * sinP + z1 * cosP;
+
+            let fov = 1000;
+            let scale = fov / (fov + z2 + 500);
+
+            return {
+                x: (x1 * scale * zoom) + canvas.width / 2,
+                y: (y2 * scale * zoom) + canvas.height / 2,
+                scale: scale
+            };
+        }
+
+        function worldToScreen(x, y, z = 0) {
+            if (is3D) return project3D(x, y, z);
+            return {
+                x: (x - camX) * zoom + canvas.width / 2,
+                y: (y - camY) * zoom + canvas.height / 2,
+                scale: 1
+            };
+        }
+
+        function screenToWorld(x, y) {
+            if (is3D) return { x: 0, y: 0 }; // Cannot unproject easily
+            return {
+                x: (x - canvas.width / 2) / zoom + camX,
+                y: (y - canvas.height / 2) / zoom + camY
+            };
+        }
+
+        /* =========================
+           STATE
+        ========================= */
+        let views = {
+            'Front': { points: [], segments: [], grainlines: [], texts: [], fabrics: [] },
+            'Back': { points: [], segments: [], grainlines: [], texts: [], fabrics: [] },
+            'Side': { points: [], segments: [], grainlines: [], texts: [], fabrics: [] }
+        };
+        let currentViewName = 'Front';
+        let showGhost = true;
+
+        let points = views[currentViewName].points;
+        let segments = views[currentViewName].segments;
+        let grainlines = views[currentViewName].grainlines;
+        let texts = views[currentViewName].texts;
+        let fabrics = views[currentViewName].fabrics;
+        
+        let selectedPoints = [];
+        let selectedFabrics = [];
+        let tempFabricPoints = [];
+        let dragStartPos = null;
+        let tool = "draw";
+        let gridSize = 25;
+
+        const fabricColors = {
+            'jean': '#3b82f6',
+            'leather': '#451a03',
+            'suede': '#b45309',
+            'cotton': '#f8fafc',
+            'silk': '#f472b6',
+            'canvas': '#d6d3d1',
+            'linen': '#fafaf9',
+            'wool': '#57534e'
+        };
+
+        let currentSize = 'M';
+        const sizeMultipliers = { 'XS': -2, 'S': -1, 'M': 0, 'L': 1, 'XL': 2, 'XXL': 3 };
+        const sizeColors = { 'XS': '#94a3b8', 'S': '#38bdf8', 'M': '#22c55e', 'L': '#fbbf24', 'XL': '#f97316', 'XXL': '#ef4444' };
+
+        /* Undo / Redo */
+        let undoStack = [];
+        let redoStack = [];
+
+        function saveHistory() {
+            // Push current state to undo stack
+            // Ensure views is up to date with local pointers
+            views[currentViewName].points = points;
+            views[currentViewName].segments = segments;
+            views[currentViewName].grainlines = grainlines;
+            views[currentViewName].texts = texts;
+            views[currentViewName].fabrics = fabrics;
+
+            undoStack.push(JSON.stringify(views));
+            if (undoStack.length > 50) undoStack.shift();
+            redoStack = []; // Clear redo stack on new action
+        }
+
+        function undo() {
+            if (undoStack.length === 0) return;
+            
+            // Push current state to redo
+            views[currentViewName].points = points;
+            views[currentViewName].segments = segments;
+            views[currentViewName].grainlines = grainlines;
+            views[currentViewName].texts = texts;
+            views[currentViewName].fabrics = fabrics;
+            redoStack.push(JSON.stringify(views));
+
+            const last = JSON.parse(undoStack.pop());
+            views = last;
+            
+            // Re-sync local pointers
+            points = views[currentViewName].points;
+            segments = views[currentViewName].segments;
+            grainlines = views[currentViewName].grainlines;
+            texts = views[currentViewName].texts || [];
+            fabrics = views[currentViewName].fabrics || [];
+            
+            selectedPoints = [];
+            selectedFabrics = [];
+            updateInspector();
+            draw();
+        }
+
+        function redo() {
+            if (redoStack.length === 0) return;
+
+            // Push current state to undo
+            views[currentViewName].points = points;
+            views[currentViewName].segments = segments;
+            views[currentViewName].grainlines = grainlines;
+            views[currentViewName].texts = texts;
+            views[currentViewName].fabrics = fabrics;
+            undoStack.push(JSON.stringify(views));
+
+            const next = JSON.parse(redoStack.pop());
+            views = next;
+
+            // Re-sync local pointers
+            points = views[currentViewName].points;
+            segments = views[currentViewName].segments;
+            grainlines = views[currentViewName].grainlines;
+            texts = views[currentViewName].texts || [];
+            fabrics = views[currentViewName].fabrics || [];
+
+            selectedPoints = [];
+            selectedFabrics = [];
+            updateInspector();
+            draw();
+        }
+
+        let measureStart = null;
+        let seamOffset = 10;
+        let grainlineStart = null;
+
+        /* =========================
+           HELP MODAL
+        ========================= */
+        function showHelp() {
+            document.getElementById('helpModal').style.display = 'flex';
+        }
+
+        function hideHelp() {
+            document.getElementById('helpModal').style.display = 'none';
+        }
+
+        /* =========================
+           SAVE / LOAD
+        ========================= */
+        function saveProject() {
+            document.getElementById('saveModal').style.display = 'flex';
+        }
+
+        function hideSave() {
+            document.getElementById('saveModal').style.display = 'none';
+        }
+
+        function executeSave() {
+            let name = document.getElementById('exportName').value || "pattern";
+            let format = document.getElementById('exportFormat').value;
+
+            // Ensure current view is saved to the dict before exporting
+            views[currentViewName].points = points;
+            views[currentViewName].segments = segments;
+            views[currentViewName].grainlines = grainlines;
+            views[currentViewName].texts = texts;
+            views[currentViewName].fabrics = fabrics;
+
+            if (format === 'json') {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(views, null, 2));
+                downloadFile(dataStr, name + ".json");
+            } 
+            else if (format === 'svg') {
+                // Generate simple SVG from current view's segments
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                segments.forEach(s => {
+                    minX = Math.min(minX, s.a.x, s.b.x);
+                    minY = Math.min(minY, s.a.y, s.b.y);
+                    maxX = Math.max(maxX, s.a.x, s.b.x);
+                    maxY = Math.max(maxY, s.a.y, s.b.y);
+                });
+                
+                if (minX === Infinity) { minX = 0; minY = 0; maxX = 500; maxY = 500; }
+                
+                // Add padding
+                minX -= 50; minY -= 50; maxX += 50; maxY += 50;
+                const width = maxX - minX;
+                const height = maxY - minY;
+
+                let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${width} ${height}" width="${width}px" height="${height}px">\n`;
+                svg += `  <style>line { stroke: black; stroke-width: 2px; stroke-linecap: round; }</style>\n`;
+                segments.forEach(s => {
+                    svg += `  <line x1="${s.a.x}" y1="${s.a.y}" x2="${s.b.x}" y2="${s.b.y}" />\n`;
+                });
+                svg += `</svg>`;
+
+                const dataStr = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+                downloadFile(dataStr, name + "_" + currentViewName + ".svg");
+            }
+            else if (format === 'png') {
+                // Ensure canvas is rendered fresh without grid lines or UI elements if possible, 
+                // but for now we just capture what is on screen
+                const dataStr = canvas.toDataURL("image/png");
+                downloadFile(dataStr, name + "_" + currentViewName + ".png");
+            }
+
+            hideSave();
+        }
+
+        function downloadFile(dataUrl, filename) {
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataUrl);
+            dlAnchorElem.setAttribute("download", filename);
+            dlAnchorElem.click();
+        }
+
+        function loadProject(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const loadedViews = JSON.parse(e.target.result);
+                    // Validate basic structure
+                    if (loadedViews.Front && loadedViews.Back && loadedViews.Side) {
+                        views = loadedViews;
+                        
+                        // Re-link current view
+                        points = views[currentViewName].points;
+                        segments = views[currentViewName].segments;
+                        grainlines = views[currentViewName].grainlines;
+                        texts = views[currentViewName].texts || [];
+                        fabrics = views[currentViewName].fabrics || [];
+                        
+                        selectedPoints = [];
+                        selectedFabrics = [];
+                        segmentStart = null;
+                        updateInspector();
+                        draw();
+                    } else {
+                        alert("Invalid project file format.");
+                    }
+                } catch (err) {
+                    alert("Error loading project file.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        /* =========================
+           VIEW SWITCHER
+        ========================= */
+        function toggleGhost() {
+            showGhost = !showGhost;
+            document.getElementById("toggle_ghost").innerText = showGhost ? "Ghosting: ON" : "Ghosting: OFF";
+            document.getElementById("toggle_ghost").classList.toggle("active", showGhost);
+            draw();
+        }
+
+        function setView(name) {
+            // Save local variables back to the dictionary
+            views[currentViewName].points = points;
+            views[currentViewName].segments = segments;
+            views[currentViewName].grainlines = grainlines;
+            views[currentViewName].texts = texts;
+            views[currentViewName].fabrics = fabrics;
+
+            currentViewName = name;
+            points = views[currentViewName].points;
+            segments = views[currentViewName].segments;
+            grainlines = views[currentViewName].grainlines;
+            texts = views[currentViewName].texts || (views[currentViewName].texts = []);
+            fabrics = views[currentViewName].fabrics || (views[currentViewName].fabrics = []);
+
+            document.querySelectorAll(".view-btn").forEach(b => b.classList.remove("active"));
+            document.getElementById("view_" + name).classList.add("active");
+
+            // Don't remove the active class from ghost toggle
+            if (showGhost) document.getElementById("toggle_ghost").classList.add("active");
+
+            selectedPoints = [];
+            selectedFabrics = [];
+            segmentStart = null;
+            updateInspector();
+            draw();
+        }
+
+        /* =========================
+           INSPECTOR
+        ========================= */
+        function updateInspector() {
+            const ins = document.getElementById("inspector");
+            ins.innerHTML = "";
+
+            if (tool === "seam") {
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Seam Allowance Width</label>
+                        <input type="number" value="${seamOffset}" onchange="seamOffset = parseFloat(this.value); draw();">
+                    </div>
+                `;
+                return;
+            }
+
+            if (selectedFabrics.length === 1) {
+                const f = selectedFabrics[0];
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Fabric Type</label>
+                        <select onchange="saveHistory(); selectedFabrics[0].type = this.value; selectedFabrics[0].color = fabricColors[this.value] || '#888'; draw();">
+                            ${Object.keys(fabricColors).map(type => `<option value="${type}" ${f.type === type ? 'selected' : ''}>${type.charAt(0).toUpperCase() + type.slice(1)}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="inspector-group">
+                        <label>Custom Color</label>
+                        <input type="color" value="${f.color}" onchange="saveHistory(); selectedFabrics[0].color = this.value; draw();">
+                    </div>
+                    <button class="modal-btn" onclick="saveHistory(); selectedFabrics[0].isCut = !selectedFabrics[0].isCut; draw(); updateInspector();">
+                        ${f.isCut ? 'Undo Cut' : 'Cut to Pattern'}
+                    </button>
+                    <button class="modal-btn" style="background:#ef4444; margin-top:8px;" onclick="saveHistory(); fabrics = fabrics.filter(fb => fb !== selectedFabrics[0]); selectedFabrics = []; updateInspector(); draw();">
+                        Delete Fabric
+                    </button>
+                `;
+                return;
+            }
+
+            if (selectedPoints.length === 1) {
+                const selectedPoint = selectedPoints[0];
+                // Initialize grading rules if they don't exist
+                if (!selectedPoint.gradeX) selectedPoint.gradeX = 0;
+                if (!selectedPoint.gradeY) selectedPoint.gradeY = 0;
+
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Name</label>
+                        <input type="text" value="${selectedPoint.name || ''}" onchange="saveHistory(); selectedPoints[0].name = this.value; draw();">
+                    </div>
+                    <div class="inspector-group">
+                        <label>X Position</label>
+                        <input type="number" value="${selectedPoint.x}" onchange="saveHistory(); selectedPoints[0].x = parseFloat(this.value); draw();">
+                    </div>
+                    <div class="inspector-group">
+                        <label>Y Position</label>
+                        <input type="number" value="${selectedPoint.y}" onchange="saveHistory(); selectedPoints[0].y = parseFloat(this.value); draw();">
+                    </div>
+                    <div class="inspector-group">
+                        <label>Grade X (Move per Size)</label>
+                        <input type="number" value="${selectedPoint.gradeX}" onchange="saveHistory(); selectedPoints[0].gradeX = parseFloat(this.value); draw();">
+                    </div>
+                    <div class="inspector-group">
+                        <label>Grade Y (Move per Size)</label>
+                        <input type="number" value="${selectedPoint.gradeY}" onchange="saveHistory(); selectedPoints[0].gradeY = parseFloat(this.value); draw();">
+                    </div>
+                `;
+            } else if (selectedPoints.length > 1) {
+                ins.innerHTML = `<div style="color:#fff; font-size:12px; font-weight:600;">${selectedPoints.length} points selected</div>
+                                 <div style="color:#64748b; font-size:11px; margin-top:4px;">Drag to move group</div>`;
+            } else {
+                ins.innerHTML = '<div style="color:#64748b; font-size:12px;">Nothing selected</div>';
+            }
+        }
+
+        /* =========================
+           TOOL
+        ========================= */
+        function setTool(t) {
+            tool = t;
+
+            document.querySelectorAll(".toolbar button").forEach(b => {
+                b.classList.remove("active");
+            });
+
+            let btn = document.getElementById("tool_" + t);
+            if (btn) {
+                btn.classList.add("active");
+            }
+            
+            updateInspector();
+        }
+
+        function setSize(s) {
+            currentSize = s;
+            document.querySelectorAll("#size_selector button").forEach(b => b.classList.remove("active"));
+            document.getElementById("size_" + s).classList.add("active");
+            draw();
+        }
+
+        /* =========================
+           GRID
+        ========================= */
+        function drawGrid() {
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+            let step = gridSize * zoom;
+            
+            // Draw axes
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            let origin = worldToScreen(0,0);
+            ctx.moveTo(0, origin.y); ctx.lineTo(canvas.width, origin.y);
+            ctx.moveTo(origin.x, 0); ctx.lineTo(origin.x, canvas.height);
+            ctx.stroke();
+            ctx.lineWidth = 1;
+
+            for (let x = -2000; x < 2000; x += gridSize) {
+                if (x === 0) continue;
+                let p = worldToScreen(x, 0);
+                ctx.beginPath();
+                ctx.moveTo(p.x, 0);
+                ctx.lineTo(p.x, canvas.height);
+                ctx.stroke();
+            }
+
+            for (let y = -2000; y < 2000; y += gridSize) {
+                if (y === 0) continue;
+                let p = worldToScreen(0, y);
+                ctx.beginPath();
+                ctx.moveTo(0, p.y);
+                ctx.lineTo(canvas.width, p.y);
+                ctx.stroke();
+            }
+        }
+
+        function reflectPoint(p, axisStart, unitDx, unitDy) {
+            let d = (p.x - axisStart.x) * unitDy - (p.y - axisStart.y) * unitDx;
+            return {
+                x: p.x - 2 * d * unitDy,
+                y: p.y + 2 * d * unitDx
+            };
+        }
+
+        function get3DCoord(viewName, p) {
+            if (viewName === 'Front') return { x: p.x, y: p.y, z: -100 };
+            if (viewName === 'Back') return { x: p.x, y: p.y, z: 100 };
+            if (viewName === 'Side') return { x: 100, y: p.y, z: p.x };
+            return { x: p.x, y: p.y, z: 0 };
+        }
+
+        /* =========================
+           RENDER
+        ========================= */
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
+
+            if (is3D) {
+                // Render all views in 3D
+                Object.keys(views).forEach(vName => {
+                    let v = views[vName];
+                    ctx.strokeStyle = (vName === currentViewName) ? "#22c55e" : "rgba(34, 197, 94, 0.3)";
+                    ctx.lineWidth = (vName === currentViewName) ? 2 : 1;
+                    
+                    v.segments.forEach(s => {
+                        let cA = get3DCoord(vName, s.a);
+                        let cB = get3DCoord(vName, s.b);
+                        let a = project3D(cA.x, cA.y, cA.z);
+                        let b = project3D(cB.x, cB.y, cB.z);
+                        ctx.beginPath();
+                        ctx.moveTo(a.x, a.y);
+                        
+                        if (s.cp1 && s.cp2) {
+                            let c1 = get3DCoord(vName, s.cp1);
+                            let c2 = get3DCoord(vName, s.cp2);
+                            let p1 = project3D(c1.x, c1.y, c1.z);
+                            let p2 = project3D(c2.x, c2.y, c2.z);
+                            ctx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, b.x, b.y);
+                        } else {
+                            ctx.lineTo(b.x, b.y);
+                        }
+                        ctx.stroke();
+                    });
+                    
+                    v.points.forEach(p => {
+                        let cP = get3DCoord(vName, p);
+                        let sP = project3D(cP.x, cP.y, cP.z);
+                        if (sP.scale < 0) return; // behind camera
+                        ctx.fillStyle = (selectedPoints.includes(p)) ? "#ef4444" : "#38bdf8";
+                        if (vName !== currentViewName) ctx.fillStyle = "rgba(56, 189, 248, 0.3)";
+                        ctx.beginPath();
+                        ctx.arc(sP.x, sP.y, Math.max(2, 5 * sP.scale), 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        if (p.name && vName === currentViewName) {
+                            ctx.fillStyle = "#fff";
+                            ctx.fillText(p.name, sP.x + 6, sP.y - 6);
+                        }
+                    });
+                });
+                
+                ctx.lineWidth = 1;
+                requestAnimationFrame(draw);
+                return;
+            }
+
+            /* fabrics */
+            fabrics.forEach(f => {
+                ctx.save();
+                ctx.fillStyle = f.color || "#888";
+                ctx.globalAlpha = 0.6;
+                
+                if (f.isCut) {
+                    ctx.beginPath();
+                    // Create clipping path from all segments
+                    segments.forEach((s) => {
+                        let ax = s.a.x + (s.a.gradeX || 0) * m;
+                        let ay = s.a.y + (s.a.gradeY || 0) * m;
+                        let bx = s.b.x + (s.b.gradeX || 0) * m;
+                        let by = s.b.y + (s.b.gradeY || 0) * m;
+                        let a = worldToScreen(ax, ay);
+                        let b = worldToScreen(bx, by);
+                        
+                        ctx.moveTo(a.x, a.y);
+                        
+                        if (s.cp1 && s.cp2) {
+                            let cp1x = s.cp1.x + (s.a.gradeX || 0) * m;
+                            let cp1y = s.cp1.y + (s.a.gradeY || 0) * m;
+                            let cp2x = s.cp2.x + (s.b.gradeX || 0) * m;
+                            let cp2y = s.cp2.y + (s.b.gradeY || 0) * m;
+                            let cp1 = worldToScreen(cp1x, cp1y);
+                            let cp2 = worldToScreen(cp2x, cp2y);
+                            ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, b.x, b.y);
+                        } else {
+                            ctx.lineTo(b.x, b.y);
+                        }
+                    });
+                    ctx.clip();
+                }
+
+                ctx.beginPath();
+                f.points.forEach((p, idx) => {
+                    let s = worldToScreen(p.x, p.y);
+                    if (idx === 0) ctx.moveTo(s.x, s.y);
+                    else ctx.lineTo(s.x, s.y);
+                });
+                ctx.closePath();
+                ctx.fill();
+
+                if (selectedFabrics.includes(f)) {
+                    ctx.strokeStyle = "#fff";
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
+                ctx.restore();
+            });
+
+            /* ghosting other views */
+            if (showGhost) {
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.1)"; // faint white for other views
+                Object.keys(views).forEach(v => {
+                    if (v !== currentViewName) {
+                        views[v].segments.forEach(s => {
+                            let a = worldToScreen(s.a.x, s.a.y);
+                            let b = worldToScreen(s.b.x, s.b.y);
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(b.x, b.y);
+                            ctx.stroke();
+                        });
+                        // Ghost fabrics too
+                        views[v].fabrics.forEach(f => {
+                            ctx.beginPath();
+                            f.points.forEach((p, idx) => {
+                                let s = worldToScreen(p.x, p.y);
+                                if (idx === 0) ctx.moveTo(s.x, s.y);
+                                else ctx.lineTo(s.x, s.y);
+                            });
+                            ctx.closePath();
+                            ctx.stroke();
+                        });
+                    }
+                });
+            }
+
+            /* segments */
+            const m = sizeMultipliers[currentSize];
+
+            const renderSizeNest = (tool === "grade");
+            const sizesToRender = renderSizeNest ? Object.keys(sizeMultipliers) : [currentSize];
+
+            sizesToRender.forEach(sz => {
+                const mult = sizeMultipliers[sz];
+                const isBase = (sz === currentSize);
+                
+                ctx.save();
+                if (renderSizeNest) {
+                    ctx.strokeStyle = sizeColors[sz];
+                    ctx.globalAlpha = isBase ? 1.0 : 0.3;
+                    ctx.lineWidth = isBase ? 2 : 1;
+                    if (!isBase) ctx.setLineDash([5, 5]);
+                } else {
+                    ctx.strokeStyle = "#22c55e";
+                    ctx.lineWidth = 2;
+                }
+
+                segments.forEach(s => {
+                    let ax = s.a.x + (s.a.gradeX || 0) * mult;
+                    let ay = s.a.y + (s.a.gradeY || 0) * mult;
+                    let bx = s.b.x + (s.b.gradeX || 0) * mult;
+                    let by = s.b.y + (s.b.gradeY || 0) * mult;
+
+                    let a = worldToScreen(ax, ay);
+                    let b = worldToScreen(bx, by);
+                    
+                    // Highlight segments connected to moving points (only for active size)
+                    let isMoving = isBase && isDragging && (selectedPoints.includes(s.a) || selectedPoints.includes(s.b));
+                    if (isMoving) {
+                        ctx.strokeStyle = "#fbbf24";
+                        ctx.lineWidth = 3;
+                    }
+
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    if (s.cp1 && s.cp2) {
+                        let cp1x = s.cp1.x + (s.a.gradeX || 0) * mult; // Relative to anchor
+                        let cp1y = s.cp1.y + (s.a.gradeY || 0) * mult;
+                        let cp2x = s.cp2.x + (s.b.gradeX || 0) * mult;
+                        let cp2y = s.cp2.y + (s.b.gradeY || 0) * mult;
+
+                        let cp1 = worldToScreen(cp1x, cp1y);
+                        let cp2 = worldToScreen(cp2x, cp2y);
+                        ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, b.x, b.y);
+                        
+                        if (isBase && (tool === "curve" || isMoving)) {
+                            ctx.save();
+                            ctx.strokeStyle = isMoving ? "rgba(251, 191, 36, 0.3)" : "rgba(255, 255, 255, 0.2)";
+                            ctx.setLineDash([2, 2]);
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y); ctx.lineTo(cp1.x, cp1.y);
+                            ctx.moveTo(b.x, b.y); ctx.lineTo(cp2.x, cp2.y);
+                            ctx.stroke();
+                            ctx.restore();
+                            
+                            ctx.fillStyle = "#fbbf24";
+                            ctx.beginPath(); ctx.arc(cp1.x, cp1.y, 4, 0, Math.PI*2); ctx.fill();
+                            ctx.beginPath(); ctx.arc(cp2.x, cp2.y, 4, 0, Math.PI*2); ctx.fill();
+                        }
+                    } else {
+                        ctx.lineTo(b.x, b.y);
+                    }
+                    ctx.stroke();
+                });
+                ctx.restore();
+            });
+            ctx.lineWidth = 1; // Reset
+
+            /* fabric tool preview */
+            if (tool === "fabric" && tempFabricPoints.length > 0) {
+                ctx.strokeStyle = "rgba(99, 102, 241, 0.5)";
+                ctx.fillStyle = "rgba(99, 102, 241, 0.2)";
+                ctx.beginPath();
+                tempFabricPoints.forEach((p, idx) => {
+                    let s = worldToScreen(p.x, p.y);
+                    if (idx === 0) ctx.moveTo(s.x, s.y);
+                    else ctx.lineTo(s.x, s.y);
+                });
+                let m = worldToScreen(mouse.x, mouse.y);
+                ctx.lineTo(m.x, m.y);
+                ctx.stroke();
+                if (tempFabricPoints.length >= 2) ctx.fill();
+
+                tempFabricPoints.forEach(p => {
+                    let s = worldToScreen(p.x, p.y);
+                    ctx.fillStyle = "#6366f1";
+                    ctx.beginPath(); ctx.arc(s.x, s.y, 4, 0, Math.PI*2); ctx.fill();
+                });
+            }
+
+            /* seam allowance preview */
+            if (tool === "seam") {
+                ctx.strokeStyle = "#f43f5e";
+                segments.forEach(s => {
+                    let dx = s.b.y - s.a.y;
+                    let dy = -(s.b.x - s.a.x);
+                    let len = Math.hypot(dx, dy);
+                    dx /= len; dy /= len;
+
+                    let a = worldToScreen(s.a.x + dx * seamOffset, s.a.y + dy * seamOffset);
+                    let b = worldToScreen(s.b.x + dx * seamOffset, s.b.y + dy * seamOffset);
+
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.stroke();
+                });
+            }
+
+            /* grainlines */
+            ctx.strokeStyle = "#a855f7";
+            grainlines.forEach(g => {
+                let a = worldToScreen(g.a.x, g.a.y);
+                let b = worldToScreen(g.b.x, g.b.y);
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
+
+                // Draw arrows at ends
+                let angle = Math.atan2(b.y - a.y, b.x - a.x);
+                let headlen = 10 * zoom;
+                
+                // arrow b
+                ctx.beginPath();
+                ctx.moveTo(b.x, b.y);
+                ctx.lineTo(b.x - headlen * Math.cos(angle - Math.PI / 6), b.y - headlen * Math.sin(angle - Math.PI / 6));
+                ctx.moveTo(b.x, b.y);
+                ctx.lineTo(b.x - headlen * Math.cos(angle + Math.PI / 6), b.y - headlen * Math.sin(angle + Math.PI / 6));
+                ctx.stroke();
+
+                // arrow a
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(a.x + headlen * Math.cos(angle - Math.PI / 6), a.y + headlen * Math.sin(angle - Math.PI / 6));
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(a.x + headlen * Math.cos(angle + Math.PI / 6), a.y + headlen * Math.sin(angle + Math.PI / 6));
+                ctx.stroke();
+            });
+
+            /* measure */
+            if (measureStart) {
+                ctx.strokeStyle = "#eab308";
+                ctx.fillStyle = "#eab308";
+                let m = worldToScreen(mouse.x, mouse.y);
+                let s = worldToScreen(measureStart.x, measureStart.y);
+                
+                // Draw diagonal
+                ctx.beginPath();
+                ctx.moveTo(s.x, s.y);
+                ctx.lineTo(m.x, m.y);
+                ctx.stroke();
+
+                // Draw bounding box (dashed)
+                ctx.setLineDash([5, 5]);
+                ctx.strokeStyle = "rgba(234, 179, 8, 0.5)";
+                ctx.beginPath();
+                ctx.moveTo(s.x, s.y);
+                ctx.lineTo(m.x, s.y);
+                ctx.lineTo(m.x, m.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                let dist = Math.hypot(mouse.x - measureStart.x, mouse.y - measureStart.y);
+                let dx = Math.abs(mouse.x - measureStart.x);
+                let dy = Math.abs(mouse.y - measureStart.y);
+
+                ctx.fillText(`L: ${dist.toFixed(1)}`, m.x + 5, m.y - 15);
+                ctx.fillText(`X: ${dx.toFixed(1)}`, m.x + 5, m.y - 5);
+                ctx.fillText(`Y: ${dy.toFixed(1)}`, m.x + 5, m.y + 5);
+            }
+
+            /* grainline tool preview */
+            if (tool === "grain" && grainlineStart) {
+                ctx.strokeStyle = "rgba(168, 85, 247, 0.5)";
+                let m = worldToScreen(mouse.x, mouse.y);
+                let s = worldToScreen(grainlineStart.x, grainlineStart.y);
+                ctx.beginPath();
+                ctx.moveTo(s.x, s.y);
+                ctx.lineTo(m.x, m.y);
+                ctx.stroke();
+            }
+
+            /* grading */
+            if (tool === "grade") {
+                ctx.strokeStyle = "rgba(14, 165, 233, 0.5)"; // ghost blue
+                ctx.setLineDash([5, 5]);
+                segments.forEach(s => {
+                    let gxA = s.a.gradeX || 0;
+                    let gyA = s.a.gradeY || 0;
+                    let gxB = s.b.gradeX || 0;
+                    let gyB = s.b.gradeY || 0;
+
+                    let a = worldToScreen(s.a.x + gxA, s.a.y + gyA);
+                    let b = worldToScreen(s.b.x + gxB, s.b.y + gyB);
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.stroke();
+                });
+                ctx.setLineDash([]);
+            }
+
+            /* points */
+            points.forEach(p => {
+                let px = p.x + (p.gradeX || 0) * sizeMultipliers[currentSize];
+                let py = p.y + (p.gradeY || 0) * sizeMultipliers[currentSize];
+                let s = worldToScreen(px, py);
+                ctx.fillStyle = (selectedPoints.includes(p)) ? "#ef4444" : "#38bdf8";
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (p.name) {
+                    ctx.fillStyle = "#fff";
+                    ctx.fillText(p.name, s.x + 6, s.y - 6);
+                }
+                
+                if (p.notch) {
+                    ctx.strokeStyle = "#facc15";
+                    ctx.beginPath();
+                    ctx.moveTo(s.x - 5, s.y - 5);
+                    ctx.lineTo(s.x + 5, s.y + 5);
+                    ctx.moveTo(s.x + 5, s.y - 5);
+                    ctx.lineTo(s.x - 5, s.y + 5);
+                    ctx.stroke();
+                }
+            });
+
+            /* annotations */
+            ctx.fillStyle = "#fff";
+            ctx.font = `bold ${Math.max(10, 14 * zoom)}px Inter`;
+            texts.forEach(t => {
+                let s = worldToScreen(t.x, t.y);
+                ctx.fillText(t.content, s.x, s.y);
+            });
+
+            requestAnimationFrame(draw);
+        }
+        draw();
+
+        /* =========================
+           HELPERS
+        ========================= */
+        function snap(x, y) {
+            return {
+                x: Math.round(x / gridSize) * gridSize,
+                y: Math.round(y / gridSize) * gridSize
+            };
+        }
+
+        function isPointInPoly(poly, pt) {
+            let c = false;
+            for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+                if (((poly[i].y <= pt.y && pt.y < poly[j].y) || (poly[j].y <= pt.y && pt.y < poly[i].y)) &&
+                    (pt.x < (poly[j].x - poly[i].x) * (pt.y - poly[i].y) / (poly[j].y - poly[i].y) + poly[i].x)) {
+                    c = !c;
+                }
+            }
+            return c;
+        }
+
+        function findPoint(pos) {
+            return points.find(p => Math.hypot(p.x - pos.x, p.y - pos.y) < 10);
+        }
+
+        function findClosestSegment(pos) {
+            let minDist = 10;
+            let closestSegment = null;
+            let projection = null;
+
+            segments.forEach(s => {
+                let l2 = Math.pow(s.a.x - s.b.x, 2) + Math.pow(s.a.y - s.b.y, 2);
+                if (l2 === 0) return;
+
+                let t = ((pos.x - s.a.x) * (s.b.x - s.a.x) + (pos.y - s.a.y) * (s.b.y - s.a.y)) / l2;
+                t = Math.max(0, Math.min(1, t));
+
+                let projX = s.a.x + t * (s.b.x - s.a.x);
+                let projY = s.a.y + t * (s.b.y - s.a.y);
+
+                let dist = Math.hypot(pos.x - projX, pos.y - projY);
+                if (dist < minDist) {
+                    minDist = dist;
+                    closestSegment = s;
+                    projection = { x: projX, y: projY };
+                }
+            });
+
+            return { segment: closestSegment, projection };
+        }
+
+        /* =========================
+           MOUSE
+        ========================= */
+        let mouse = { x: 0, y: 0 };
+        let isDragging = false;
+        let segmentStart = null;
+        let activeCurveSegment = null;
+        let activeCP = null; // 1 or 2
+
+        canvas.addEventListener("mousedown", e => {
+            if (is3D) {
+                // Check for anchor point click
+                let clickedPoint = null;
+                let clickedView = null;
+                Object.keys(views).forEach(vName => {
+                    views[vName].points.forEach(p => {
+                        let cP = get3DCoord(vName, p);
+                        let sP = project3D(cP.x, cP.y, cP.z);
+                        if (sP.scale > 0 && Math.hypot(e.clientX - sP.x, e.clientY - sP.y) < 15) {
+                            clickedPoint = p;
+                            clickedView = vName;
+                        }
+                    });
+                });
+
+                if (clickedPoint) {
+                    let cP = get3DCoord(clickedView, clickedPoint);
+                    camX = cP.x;
+                    camY = cP.y;
+                    // Reset yaw and pitch to face the view directly
+                    if (clickedView === 'Front') { camYaw = 0; camPitch = 0; }
+                    else if (clickedView === 'Back') { camYaw = Math.PI; camPitch = 0; }
+                    else if (clickedView === 'Side') { camYaw = Math.PI / 2; camPitch = 0; }
+                    zoom = 2.0;
+                }
+                return; // Disable other drawing tools in 3D
+            }
+
+            let rect = canvas.getBoundingClientRect();
+            let w = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+            let pos = snap(w.x, w.y);
+            mouse = pos;
+
+            let p = findPoint(pos);
+
+            // Destructive / Major state actions save history
+            if (["draw", "addPoint", "move", "delete", "cut", "notch", "grain", "name", "align", "curve", "mirror", "text", "segment", "fabric"].includes(tool)) {
+                if (tool === "move" && !p) { /* no move */ }
+                else if (tool === "select") { /* no history for selection */ }
+                else if (tool === "grade") { /* no history for grade tool activation */ }
+                else if (tool === "fabric" && tempFabricPoints.length < 3) { /* don't save yet */ }
+                else {
+                    saveHistory();
+                }
+            }
+
+            if (tool === "fabric") {
+                tempFabricPoints.push({ x: pos.x, y: pos.y });
+                if (tempFabricPoints.length === 4) {
+                    fabrics.push({
+                        points: [...tempFabricPoints],
+                        type: 'cotton',
+                        color: fabricColors['cotton'],
+                        isCut: false
+                    });
+                    tempFabricPoints = [];
+                    saveHistory();
+                }
+            }
+
+            if (tool === "draw") {
+                let newP = { x: pos.x, y: pos.y };
+                points.push(newP);
+
+                if (points.length > 1) {
+                    segments.push({
+                        a: points[points.length - 2],
+                        b: newP
+                    });
+                }
+            }
+
+            if (tool === "addPoint") {
+                let newP = { x: pos.x, y: pos.y };
+                points.push(newP);
+            }
+
+            if (tool === "select" || tool === "grade") {
+                if (e.shiftKey || e.ctrlKey) {
+                    if (p) {
+                        if (selectedPoints.includes(p)) {
+                            selectedPoints = selectedPoints.filter(pt => pt !== p);
+                        } else {
+                            selectedPoints.push(p);
+                        }
+                    }
+                } else {
+                    selectedPoints = p ? [p] : [];
+                    if (!p) {
+                        // Check for fabric selection
+                        let clickedFabric = [...fabrics].reverse().find(f => isPointInPoly(f.points, pos));
+                        selectedFabrics = clickedFabric ? [clickedFabric] : [];
+                    } else {
+                        selectedFabrics = [];
+                    }
+                }
+                updateInspector();
+            }
+
+            if (tool === "move" && p) {
+                if (e.shiftKey || e.ctrlKey) {
+                    if (!selectedPoints.includes(p)) {
+                        selectedPoints.push(p);
+                    }
+                } else {
+                    if (!selectedPoints.includes(p)) {
+                        selectedPoints = [p];
+                    }
+                }
+                isDragging = true;
+                dragStartPos = { x: mouse.x, y: mouse.y };
+                updateInspector();
+            }
+
+            if (tool === "segment") {
+                if (!segmentStart && p) {
+                    segmentStart = p;
+                } else if (segmentStart && p) {
+                    segments.push({ a: segmentStart, b: p });
+                    segmentStart = null;
+                }
+            }
+
+            if (tool === "measure") {
+                measureStart = pos;
+            }
+
+            if (tool === "delete" && p) {
+                let ptsToDelete = selectedPoints.includes(p) ? selectedPoints : [p];
+                points = points.filter(pt => !ptsToDelete.includes(pt));
+                segments = segments.filter(s => !ptsToDelete.includes(s.a) && !ptsToDelete.includes(s.b));
+                selectedPoints = selectedPoints.filter(pt => !ptsToDelete.includes(pt));
+                updateInspector();
+            }
+            
+            if (tool === "cut" && !p) {
+                let { segment, projection } = findClosestSegment(pos);
+                if (segment && projection) {
+                    let newP = { x: projection.x, y: projection.y };
+                    points.push(newP);
+                    
+                    segments.push({ a: segment.a, b: newP });
+                    segments.push({ a: newP, b: segment.b });
+                    
+                    segments = segments.filter(s => s !== segment);
+                }
+            }
+
+            if (tool === "notch" && p) {
+                p.notch = true;
+            }
+
+            if (tool === "grain") {
+                if (!grainlineStart) {
+                    grainlineStart = pos;
+                } else {
+                    grainlines.push({ a: grainlineStart, b: pos });
+                    grainlineStart = null;
+                }
+            }
+
+            if (tool === "name" && p) {
+                let name = prompt("Point name:");
+                if (name) p.name = name;
+                updateInspector();
+            }
+
+            if (tool === "align" && selectedPoints.length > 0 && p) {
+                let reference = selectedPoints[selectedPoints.length - 1];
+                p.y = reference.y;
+                updateInspector();
+            }
+
+            if (tool === "curve") {
+                // Check if clicking existing control points
+                let foundCP = false;
+                segments.forEach(s => {
+                    if (s.cp1 && s.cp2) {
+                        if (Math.hypot(pos.x - s.cp1.x, pos.y - s.cp1.y) < 10) { activeCurveSegment = s; activeCP = 1; foundCP = true; }
+                        else if (Math.hypot(pos.x - s.cp2.x, pos.y - s.cp2.y) < 10) { activeCurveSegment = s; activeCP = 2; foundCP = true; }
+                    }
+                });
+
+                if (!foundCP) {
+                    let { segment } = findClosestSegment(pos);
+                    if (segment) {
+                        segment.cp1 = { x: segment.a.x + (segment.b.x - segment.a.x)/3, y: segment.a.y + (segment.b.y - segment.a.y)/3 };
+                        segment.cp2 = { x: segment.a.x + (segment.b.x - segment.a.x)*2/3, y: segment.a.y + (segment.b.y - segment.a.y)*2/3 };
+                        activeCurveSegment = segment;
+                        activeCP = 1;
+                    }
+                }
+            }
+
+            if (tool === "mirror") {
+                let { segment } = findClosestSegment(pos);
+                if (segment) {
+                    let p1 = segment.a, p2 = segment.b;
+                    let dx = p2.x - p1.x, dy = p2.y - p1.y;
+                    let len = Math.hypot(dx, dy);
+                    if (len > 0) {
+                        dx /= len; dy /= len;
+                        let pointMap = new Map();
+                        let newPts = [];
+                        points.forEach(p => {
+                            let d = (p.x - p1.x) * dy - (p.y - p1.y) * dx;
+                            if (Math.abs(d) < 1) return; // ignore points on axis
+                            let np = reflectPoint(p, p1, dx, dy);
+                            newPts.push(np);
+                            pointMap.set(p, np);
+                        });
+                        newPts.forEach(p => points.push(p));
+                        segments.forEach(s => {
+                            let na = pointMap.get(s.a) || s.a;
+                            let nb = pointMap.get(s.b) || s.b;
+                            if (na === s.a && nb === s.b) return;
+                            segments.push({ 
+                                a: na, b: nb, 
+                                cp1: s.cp1 ? reflectPoint(s.cp1, p1, dx, dy) : null,
+                                cp2: s.cp2 ? reflectPoint(s.cp2, p1, dx, dy) : null
+                            });
+                        });
+                    }
+                }
+            }
+
+            if (tool === "text") {
+                let content = prompt("Annotation text:");
+                if (content) texts.push({ x: pos.x, y: pos.y, content });
+            }
+        });
+
+        canvas.addEventListener("mousemove", e => {
+            if (is3D && e.buttons === 1) {
+                // Left click drag to rotate camera
+                camYaw += e.movementX * 0.01;
+                camPitch -= e.movementY * 0.01;
+                // Constrain pitch to avoid flipping
+                camPitch = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, camPitch));
+                return;
+            } else if (is3D && e.buttons === 2) {
+                // Right click drag to pan camera
+                camX -= e.movementX / zoom;
+                camY -= e.movementY / zoom;
+                return;
+            }
+
+            if (is3D) return;
+
+            let rect = canvas.getBoundingClientRect();
+            let w = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+            mouse = snap(w.x, w.y);
+
+            if (isDragging && selectedPoints.length > 0) {
+                let dx = mouse.x - dragStartPos.x;
+                let dy = mouse.y - dragStartPos.y;
+                
+                if (dx !== 0 || dy !== 0) {
+                    // Track moved points to update control points once per segment
+                    const movedPoints = new Set(selectedPoints);
+
+                    selectedPoints.forEach(p => {
+                        p.x += dx;
+                        p.y += dy;
+                    });
+
+                    // Update control points for all segments connected to moved points
+                    segments.forEach(s => {
+                        if (movedPoints.has(s.a) && s.cp1) {
+                            s.cp1.x += dx;
+                            s.cp1.y += dy;
+                        }
+                        if (movedPoints.has(s.b) && s.cp2) {
+                            s.cp2.x += dx;
+                            s.cp2.y += dy;
+                        }
+                    });
+
+                    dragStartPos = { x: mouse.x, y: mouse.y };
+                }
+            }
+
+            if (activeCurveSegment && activeCP) {
+                if (activeCP === 1) { activeCurveSegment.cp1.x = mouse.x; activeCurveSegment.cp1.y = mouse.y; }
+                else { activeCurveSegment.cp2.x = mouse.x; activeCurveSegment.cp2.y = mouse.y; }
+            }
+
+            if (e.buttons === 2) {
+                camX -= e.movementX / zoom;
+                camY -= e.movementY / zoom;
+            }
+        });
+
+        canvas.addEventListener("mouseup", () => {
+            isDragging = false;
+            measureStart = null;
+            activeCurveSegment = null;
+            activeCP = null;
+        });
+
+        /* zoom */
+        canvas.addEventListener("wheel", e => {
+            e.preventDefault();
+            let factor = e.deltaY < 0 ? 1.1 : 0.9;
+            zoom *= factor;
+        }, { passive: false });
+
+        /* disable right click */
+        canvas.addEventListener("contextmenu", e => e.preventDefault());
+
+        /* hotkeys */
+        window.addEventListener("keydown", e => {
+            // Ignore if user is typing in an input field
+            if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+
+            const key = e.key.toLowerCase();
+            const ctrl = e.ctrlKey || e.metaKey;
+
+            if (ctrl && key === 'z') { e.preventDefault(); undo(); return; }
+            if (ctrl && key === 'y') { e.preventDefault(); redo(); return; }
+
+            if (key === 'd') setTool('draw');
+            else if (key === 's') setTool('select');
+            else if (key === 'm') setTool('move');
+            else if (key === 'x') setTool('delete');
+            else if (key === 'p') setTool('addPoint');
+            else if (key === 'n') setTool('name');
+            else if (key === 'a') setTool('align');
+            else if (key === 'l') setTool('segment');
+            else if (key === 'c') setTool('cut');
+            else if (key === 'r') setTool('measure');
+            else if (key === 'o') setTool('seam');
+            else if (key === 't') setTool('notch');
+            else if (key === 'g') setTool('grain');
+            else if (key === 'e') setTool('grade');
+            else if (key === 'b') setTool('curve');
+            else if (key === 'i') setTool('mirror');
+            else if (key === 'v') setTool('text');
+            else if (key === 'f') setTool('fabric');
+            else if (key === '1') setView('Front');
+            else if (key === '2') setView('Back');
+            else if (key === '3') setView('Side');
+            else if (key === '4') toggle3D();
+            else if (key === 'h') toggleGhost();
+        });
+
+        /* =========================
+           TOOLTIP SYSTEM
+        ========================= */
+        class TooltipSystem {
+            constructor() {
+                this.tooltip = document.createElement('div');
+                this.tooltip.className = 'premium-tooltip';
+                document.body.appendChild(this.tooltip);
+                
+                this.init();
+            }
+
+            init() {
+                document.addEventListener('mouseover', (e) => {
+                    const target = e.target.closest('[data-tooltip]');
+                    if (target) {
+                        this.show(target);
+                    }
+                });
+
+                document.addEventListener('mouseout', (e) => {
+                    const target = e.target.closest('[data-tooltip]');
+                    if (target) {
+                        this.hide();
+                    }
+                });
+
+                // Handle clicking a tool (hide tooltip)
+                document.addEventListener('mousedown', () => this.hide());
+            }
+
+            show(target) {
+                const text = target.getAttribute('data-tooltip');
+                if (!text) return;
+
+                this.tooltip.textContent = text;
+                this.tooltip.classList.add('visible');
+
+                const rect = target.getBoundingClientRect();
+                const tooltipRect = this.tooltip.getBoundingClientRect();
+                
+                let top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
+                let left = rect.right + 10;
+
+                // Boundary detection
+                if (left + tooltipRect.width > window.innerWidth - 10) {
+                    // Try showing on the left
+                    left = rect.left - tooltipRect.width - 10;
+                }
+
+                if (top + tooltipRect.height > window.innerHeight - 10) {
+                    top = window.innerHeight - tooltipRect.height - 10;
+                }
+                
+                if (top < 10) {
+                    top = 10;
+                }
+
+                // If it's the topbar buttons, show below
+                if (target.closest('#topbar')) {
+                    top = rect.bottom + 10;
+                    left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+                    
+                    // Center correction
+                    if (left < 10) left = 10;
+                    if (left + tooltipRect.width > window.innerWidth - 10) {
+                        left = window.innerWidth - tooltipRect.width - 10;
+                    }
+                }
+
+                this.tooltip.style.top = `${top}px`;
+                this.tooltip.style.left = `${left}px`;
+            }
+
+            hide() {
+                this.tooltip.classList.remove('visible');
+            }
+        }
+
+        // Initialize Tooltip System
+        new TooltipSystem();
+    </script>
+
+</body>
+
+</html>
