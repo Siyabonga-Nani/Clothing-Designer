@@ -1,869 +1,2580 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clothing Designer | Professional Pattern Suite</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-  <script src="https://unpkg.com/lucide@latest"></script>
+    <meta charset="UTF-8">
+    <title>Clothing Designer</title>
 
-  <style>
-    :root {
-      --bg-dark: #05070a;
-      --bg-card: rgba(255, 255, 255, 0.03);
-      --accent: #4da6ff;
-      --accent-alt: #b84dff;
-      --text-main: #f8fafc;
-      --text-dim: #94a3b8;
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-      font-family: 'Inter', sans-serif;
-    }
+    <script>
+        // Security Gate
+        if (localStorage.getItem('designer_auth') !== 'true') {
+            window.location.href = '../index.html';
+        }
+    </script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+            font-family: 'Inter', sans-serif;
+            background: #0b0f19;
+            color: #e2e8f0;
+        }
 
-    h1, h2, h3, .logo {
-      font-family: 'Outfit', sans-serif;
-    }
+        /* TOP BAR */
+        #topbar {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            height: 48px;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            z-index: 10;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
 
-    body {
-      background: var(--bg-dark);
-      color: var(--text-main);
-      overflow-x: hidden;
-      min-height: 100vh;
-    }
+        .topbar-left h2 {
+            margin: 0;
+            font-size: 16px;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
 
-    /* BACKGROUND PARTICLES */
-    #bg-canvas {
-      position: fixed;
-      inset: 0;
-      z-index: -1;
-      pointer-events: none;
-      opacity: 0;
-      transition: opacity 3s ease;
-    }
+        .topbar-center {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    /* SPLASH SCREEN */
-    #splash {
-      position: fixed;
-      inset: 0;
-      background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      z-index: 100;
-      transition: opacity 0.8s ease, visibility 0.8s;
-    }
+        .topbar-right {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
 
-    #splash::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background-image: 
-        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
-      background-size: 40px 40px;
-      mask-image: radial-gradient(circle at center, black, transparent 80%);
-      pointer-events: none;
-    }
+        .divider {
+            width: 1px;
+            height: 24px;
+            background: rgba(255,255,255,0.1);
+            margin: 0 4px;
+        }
 
-    .logo-container {
-      text-align: center;
-      animation: logoReveal 1.2s ease-out forwards;
-    }
+        .view-btn {
+            background: transparent;
+            border: none;
+            padding: 8px 16px;
+            color: #94a3b8;
+            font-family: 'Inter', sans-serif;
+            font-weight: 500;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 8px;
+            transition: all 0.2s ease;
+        }
 
-    .logo {
-      font-size: 48px;
-      font-weight: 700;
-      letter-spacing: -0.02em;
-      background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      margin-bottom: 8px;
-    }
+        .view-btn:hover {
+            color: #e2e8f0;
+            background: rgba(255, 255, 255, 0.05);
+        }
 
-    .subtitle {
-      color: var(--text-dim);
-      font-size: 16px;
-      letter-spacing: 0.2em;
-      text-transform: uppercase;
-      font-weight: 300;
-    }
+        .view-btn.active {
+            color: #fff;
+            background: rgba(99, 102, 241, 0.2);
+            border: 1px solid rgba(99, 102, 241, 0.5);
+        }
 
-    .loader-container {
-      margin-top: 48px;
-      width: 240px;
-      position: relative;
-    }
+        .icon-btn-text {
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            transition: all 0.2s;
+        }
 
-    .loader-bar {
-      height: 2px;
-      width: 100%;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 10px;
-      overflow: hidden;
-    }
+        .icon-btn-text:hover {
+            color: #fff;
+            background: rgba(255,255,255,0.1);
+        }
 
-    .loader-progress {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, var(--accent), var(--accent-alt));
-      box-shadow: 0 0 15px var(--accent);
-      animation: load 2.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
-    }
+        /* TOOLBAR (Left) */
+        .toolbar {
+            position: absolute;
+            top: 80px;
+            left: 20px;
+            width: 64px;
+            max-height: calc(100vh - 120px);
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 12px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+            z-index: 10;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
 
-    .loading-text {
-      position: absolute;
-      top: 12px;
-      right: 0;
-      font-size: 12px;
-      color: var(--text-dim);
-      font-variant-numeric: tabular-nums;
-    }
+        .toolbar::-webkit-scrollbar {
+            width: 4px;
+        }
 
-    @keyframes logoReveal {
-      0% { opacity: 0; transform: scale(0.9) translateY(20px); filter: blur(10px); }
-      100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
-    }
+        .toolbar::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+        }
 
-    @keyframes load {
-      0% { width: 0%; }
-      30% { width: 40%; }
-      60% { width: 45%; }
-      100% { width: 100%; }
-    }
+        .toolbar-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            width: 100%;
+            align-items: center;
+            padding-bottom: 10px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
 
-    /* ONBOARDING */
-    #onboarding {
-      opacity: 0;
-      visibility: hidden;
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 80px 24px;
-      transition: var(--transition);
-    }
+        .toolbar-group:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
 
-    #onboarding.active {
-      opacity: 1;
-      visibility: visible;
-    }
+        .icon-btn {
+            background: transparent;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            color: #94a3b8;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s;
+            position: relative;
+        }
 
-    .header {
-      text-align: center;
-      margin-bottom: 60px;
-    }
+        .icon-btn:hover {
+            color: #e2e8f0;
+            background: rgba(255, 255, 255, 0.05);
+        }
 
-    .header h2 {
-      font-size: 42px;
-      font-weight: 700;
-      margin-bottom: 16px;
-    }
+        .icon-btn.active {
+            color: #fff;
+            background: #6366f1;
+            box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
+        }
 
-    .header p {
-      color: var(--text-dim);
-      font-size: 18px;
-      max-width: 600px;
-      margin: 0 auto;
-    }
+        /* Premium Tooltip System */
+        .premium-tooltip {
+            position: fixed;
+            z-index: 1000;
+            padding: 8px 12px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(12px) saturate(180%);
+            -webkit-backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            color: #fff;
+            font-size: 13px;
+            font-weight: 500;
+            pointer-events: none;
+            opacity: 0;
+            transform: scale(0.95) translateY(5px);
+            transition: opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1), transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            white-space: nowrap;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
 
-    .tiers {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-      gap: 24px;
-      align-items: stretch;
-    }
+        .premium-tooltip.visible {
+            opacity: 1;
+            transform: scale(1) translateY(0);
+        }
 
-    .card {
-      background: var(--bg-card);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--glass-border);
-      border-radius: 24px;
-      padding: 32px;
-      display: flex;
-      flex-direction: column;
-      transition: var(--transition);
-      position: relative;
-      overflow: hidden;
-    }
+        .premium-tooltip::before {
+            content: '';
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: inherit;
+            border: inherit;
+            border-bottom: none;
+            border-right: none;
+            transform: rotate(45deg);
+            display: none; /* Hidden by default, shown based on position */
+        }
 
-    .card:hover {
-      background: rgba(255, 255, 255, 0.05);
-      border-color: rgba(255, 255, 255, 0.15);
-      transform: translateY(-8px);
-    }
+        /* INSPECTOR (Right) */
+        .inspector-panel {
+            position: absolute;
+            top: 80px;
+            right: 20px;
+            width: 260px;
+            background: rgba(15, 23, 42, 0.7);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            z-index: 10;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
 
-    .card.featured {
-      background: linear-gradient(180deg, rgba(77, 166, 255, 0.1) 0%, rgba(5, 7, 10, 0) 100%);
-      border-color: rgba(77, 166, 255, 0.3);
-    }
+        .inspector-panel h3 {
+            margin: 0 0 4px 0;
+            font-size: 14px;
+            font-weight: 600;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
 
-    .badge {
-      position: absolute;
-      top: 16px;
-      right: 16px;
-      background: var(--accent);
-      color: #000;
-      font-size: 11px;
-      font-weight: 700;
-      padding: 4px 12px;
-      border-radius: 100px;
-      text-transform: uppercase;
-    }
+        .inspector-group {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            margin-bottom: 10px;
+        }
 
-    .card h3 {
-      font-size: 24px;
-      margin-bottom: 8px;
-    }
+        .inspector-group label {
+            font-size: 11px;
+            font-weight: 500;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-    .price {
-      font-size: 36px;
-      font-weight: 700;
-      margin-bottom: 24px;
-      display: flex;
-      align-items: baseline;
-      gap: 4px;
-    }
+        .inspector-group input {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 8px;
+            border-radius: 6px;
+            font-family: 'Inter', sans-serif;
+            font-size: 13px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
 
-    .price span {
-      font-size: 16px;
-      color: var(--text-dim);
-      font-weight: 400;
-    }
+        .inspector-group input:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
 
-    .features {
-      list-style: none;
-      margin-bottom: 32px;
-      flex-grow: 1;
-    }
+        /* CANVAS FULLSCREEN */
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            width: 100vw;
+            height: 100vh;
+            background: #0b0f19;
+            cursor: crosshair;
+            z-index: 1;
+        }
 
-    .features li {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      color: var(--text-dim);
-      font-size: 14px;
-      margin-bottom: 12px;
-    }
+        /* MODAL */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100;
+        }
 
-    .features li i {
-      color: var(--accent);
-      width: 18px;
-      height: 18px;
-    }
+        .modal-content {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            width: 500px;
+            max-width: 90vw;
+            padding: 24px;
+            color: #e2e8f0;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 10px 10px -5px rgba(0, 0, 0, 0.2);
+            position: relative;
+        }
 
-    .select-btn {
-      width: 100%;
-      padding: 16px;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.05);
-      color: white;
-      font-weight: 600;
-      cursor: pointer;
-      transition: var(--transition);
-    }
+        .modal-content h2 {
+            margin-top: 0;
+            margin-bottom: 16px;
+            color: #fff;
+        }
 
-    .card.featured .select-btn {
-      background: linear-gradient(90deg, var(--accent), var(--accent-alt));
-      border: none;
-    }
+        .modal-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
 
-    .select-btn:hover {
-      background: rgba(255,255,255,0.1);
-      transform: scale(1.02);
-    }
+        .modal-group label {
+            font-size: 12px;
+            font-weight: 500;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
 
-    .card.featured .select-btn:hover {
-      filter: brightness(1.1);
-      box-shadow: 0 0 20px rgba(77, 166, 255, 0.3);
-    }
+        .modal-group input, .modal-group select {
+            width: 100%;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: #fff;
+            padding: 10px;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.2s;
+        }
 
-    /* FLOW CONTAINERS */
-    #flow-container {
-      display: none;
-      position: fixed;
-      inset: 0;
-      align-items: center;
-      justify-content: center;
-      z-index: 50;
-      background: var(--bg-dark);
-      opacity: 0;
-      transition: opacity 0.6s ease;
-    }
+        .modal-group input:focus, .modal-group select:focus {
+            outline: none;
+            border-color: #6366f1;
+        }
 
-    .flow-box {
-      width: 440px;
-      padding: 40px;
-      background: var(--bg-card);
-      backdrop-filter: blur(24px);
-      border: 1px solid var(--glass-border);
-      border-radius: 32px;
-      text-align: center;
-      position: relative;
-    }
+        .modal-group select {
+            appearance: none;
+            cursor: pointer;
+        }
 
-    .step-section {
-      display: none;
-      animation: fadeIn 0.5s ease;
-    }
+        .modal-btn {
+            width: 100%;
+            background: #6366f1;
+            color: #fff;
+            border: none;
+            padding: 12px;
+            border-radius: 8px;
+            font-family: 'Inter', sans-serif;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+            margin-top: 8px;
+        }
 
-    .step-section.active {
-      display: block;
-    }
+        .modal-btn:hover {
+            background: #4f46e5;
+        }
 
-    .flow-box h2 {
-      font-size: 28px;
-      margin-bottom: 12px;
-    }
+        .modal-close {
+            position: absolute;
+            top: 16px;
+            right: 16px;
+            background: transparent;
+            border: none;
+            color: #94a3b8;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
 
-    .flow-box p {
-      color: var(--text-dim);
-      font-size: 14px;
-      margin-bottom: 32px;
-    }
+        .modal-close:hover {
+            color: #fff;
+        }
 
-    .progress-dots {
-      display: flex;
-      justify-content: center;
-      gap: 8px;
-      margin-bottom: 32px;
-    }
+        .help-list {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+        }
 
-    .dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      background: rgba(255, 255, 255, 0.1);
-      transition: var(--transition);
-    }
+        .help-item {
+            background: rgba(0, 0, 0, 0.2);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
 
-    .dot.active {
-      background: var(--accent);
-      box-shadow: 0 0 10px var(--accent);
-      width: 20px;
-      border-radius: 4px;
-    }
+        .help-item strong {
+            display: block;
+            color: #6366f1;
+            margin-bottom: 4px;
+            font-size: 14px;
+        }
 
-    .input-group {
-      margin-bottom: 20px;
-      text-align: left;
-    }
-
-    .input-group label {
-      display: block;
-      font-size: 12px;
-      color: var(--text-dim);
-      margin-bottom: 8px;
-      margin-left: 4px;
-    }
-
-    .input {
-      width: 100%;
-      padding: 16px;
-      border-radius: 14px;
-      border: 1px solid var(--glass-border);
-      background: rgba(255,255,255,0.02);
-      color: white;
-      font-size: 16px;
-      transition: var(--transition);
-    }
-
-    .input:focus {
-      outline: none;
-      border-color: var(--accent);
-      background: rgba(255,255,255,0.05);
-    }
-
-    .row {
-      display: flex;
-      gap: 12px;
-    }
-
-    .btn-primary {
-      width: 100%;
-      padding: 16px;
-      border: none;
-      border-radius: 14px;
-      background: linear-gradient(90deg, var(--accent), var(--accent-alt));
-      color: white;
-      font-weight: 700;
-      font-size: 16px;
-      cursor: pointer;
-      transition: var(--transition);
-      margin-top: 10px;
-    }
-
-    .btn-primary:hover {
-      transform: scale(1.02);
-      filter: brightness(1.1);
-    }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-  </style>
+        .help-item p {
+            margin: 0;
+            font-size: 12px;
+            color: #cbd5e1;
+            line-height: 1.4;
+        }
+    </style>
 </head>
 
 <body>
 
-  <canvas id="bg-canvas"></canvas>
-
-  <!-- SPLASH SCREEN -->
-  <div id="splash">
-    <div class="logo-container">
-      <div class="logo">Clothing Designer</div>
-      <div class="subtitle">Professional Pattern Suite</div>
-    </div>
-    <div class="loader-container">
-      <div class="loader-bar">
-        <div class="loader-progress"></div>
-      </div>
-      <div class="loading-text"><span id="load-val">0</span>%</div>
-    </div>
-  </div>
-
-  <!-- ONBOARDING / SUBSCRIPTIONS -->
-  <div id="onboarding">
-    <div class="header">
-      <h2>Elevate Your Design</h2>
-      <p>Choose the perfect plan for your professional pattern-making journey.</p>
-    </div>
-
-    <div class="tiers">
-      <!-- Free -->
-      <div class="card" onclick="selectPlan('free')">
-        <h3>Free</h3>
-        <div class="price">$0</div>
-        <ul class="features">
-          <li><i data-lucide="check"></i> Basic drafting tools</li>
-          <li><i data-lucide="check"></i> 3 active projects</li>
-          <li><i data-lucide="check"></i> Export as PNG/JPG</li>
-          <li><i data-lucide="check"></i> Community forums</li>
-        </ul>
-        <button class="select-btn">Start Free</button>
-      </div>
-
-      <!-- Solo -->
-      <div class="card" onclick="selectPlan('solo')">
-        <h3>Solo</h3>
-        <div class="price">$9<span>/mo</span></div>
-        <ul class="features">
-          <li><i data-lucide="check"></i> Unlimited projects</li>
-          <li><i data-lucide="check"></i> SVG & DXF export</li>
-          <li><i data-lucide="check"></i> Advanced Bezier tools</li>
-          <li><i data-lucide="check"></i> Symmetrical mirroring</li>
-          <li><i data-lucide="check"></i> Cloud storage</li>
-        </ul>
-        <button class="select-btn">Select Solo</button>
-      </div>
-
-      <!-- Business -->
-      <div class="card featured" onclick="selectPlan('business')">
-        <div class="badge">Recommended</div>
-        <h3>Business</h3>
-        <div class="price">$29<span>/mo</span></div>
-        <ul class="features">
-          <li><i data-lucide="check"></i> Everything in Solo</li>
-          <li><i data-lucide="check"></i> Production-ready patterns</li>
-          <li><i data-lucide="check"></i> Custom grading rules</li>
-          <li><i data-lucide="check"></i> Specialized hardware tools</li>
-          <li><i data-lucide="check"></i> Team collaboration</li>
-        </ul>
-        <button class="select-btn">Select Business</button>
-      </div>
-
-      <!-- Corporate -->
-      <div class="card" onclick="selectPlan('corporate')">
-        <h3>Corporate</h3>
-        <div class="price">$99<span>/mo</span></div>
-        <ul class="features">
-          <li><i data-lucide="check"></i> Everything in Business</li>
-          <li><i data-lucide="check"></i> Advanced analytics</li>
-          <li><i data-lucide="check"></i> Enterprise API access</li>
-          <li><i data-lucide="check"></i> Dedicated account manager</li>
-          <li><i data-lucide="check"></i> Multi-seat management</li>
-        </ul>
-        <button class="select-btn">Contact Sales</button>
-      </div>
-
-      <!-- School -->
-      <div class="card" onclick="selectPlan('school')">
-        <h3>School</h3>
-        <div class="price">$5<span>/student</span></div>
-        <ul class="features">
-          <li><i data-lucide="check"></i> Educational curriculum</li>
-          <li><i data-lucide="check"></i> Teacher dashboard</li>
-          <li><i data-lucide="check"></i> Project sharing & review</li>
-          <li><i data-lucide="check"></i> Bulk license management</li>
-        </ul>
-        <button class="select-btn">For Schools</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- FLOW CONTAINER (REGISTRATION / PAYMENT / SECURITY) -->
-  <div id="flow-container">
-    <div class="flow-box">
-      <div class="progress-dots">
-        <div class="dot active" id="dot-1"></div>
-        <div class="dot" id="dot-2"></div>
-        <div class="dot" id="dot-3"></div>
-      </div>
-
-      <div class="step-section active" id="step-registration">
-        <h2>Create Account</h2>
-        <p>Tell us a bit about yourself to get started.</p>
-        <div class="input-group">
-          <label>Full Name</label>
-          <input class="input" type="text" id="user-name" placeholder="John Doe">
-        </div>
-        <div class="input-group">
-          <label>Email Address</label>
-          <input class="input" type="email" id="user-email" placeholder="john@example.com">
-        </div>
-        <button class="btn-primary" onclick="nextStep()">Continue</button>
-        <p style="margin-top: 20px; font-size: 13px; color: var(--text-dim);">Already have an account? <a href="#" onclick="showLogin()" style="color: var(--accent); text-decoration: none;">Log In</a></p>
-      </div>
-
-      <!-- Step 2: Payment (Hidden for Free) -->
-      <div class="step-section" id="step-payment">
-        <h2>Secure Payment</h2>
-        <p>Enter your payment details to activate <span id="selected-plan-name">your plan</span>.</p>
-        
-        <div id="voucher-display" style="background: rgba(77, 166, 255, 0.1); border: 1px dashed var(--accent); border-radius: 12px; padding: 12px; margin-bottom: 20px; display: none;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <span style="font-size: 13px; color: var(--accent);">Voucher Applied!</span>
-            <span id="discount-amount" style="font-weight: 700; color: white;">-$0</span>
-          </div>
-        </div>
-
-        <div class="input-group">
-          <label>Card Number</label>
-          <input class="input" type="text" id="card-num" placeholder="0000 0000 0000 0000">
-        </div>
-        <div class="row">
-          <div class="input-group" style="flex:2">
-            <label>Expiry Date</label>
-            <input class="input" type="text" placeholder="MM/YY">
-          </div>
-          <div class="input-group" style="flex:1">
-            <label>CVC</label>
-            <input class="input" type="text" placeholder="123">
-          </div>
+    <div id="topbar">
+        <div class="topbar-left">
+            <h2>Clothing Designer</h2>
         </div>
         
-        <div class="input-group" style="margin-top: 10px;">
-          <label>Voucher Code</label>
-          <div style="display: flex; gap: 8px;">
-            <input class="input" type="text" id="voucher-input" placeholder="e.g. SAVE20" style="text-transform: uppercase;">
-            <button class="select-btn" onclick="applyVoucher()" style="width: auto; padding: 0 20px; font-size: 13px;">Apply</button>
-          </div>
+        <div class="topbar-center">
+            <button onclick="setView('Front')" id="view_Front" class="view-btn active" data-tooltip="Front (1)">Front</button>
+            <button onclick="setView('Back')" id="view_Back" class="view-btn" data-tooltip="Back (2)">Back</button>
+            <button onclick="setView('Side')" id="view_Side" class="view-btn" data-tooltip="Side (3)">Side</button>
+            <div class="divider"></div>
+            <div id="size_selector" style="display: flex; gap: 4px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.1);">
+                <button onclick="setSize('XS')" class="view-btn" style="padding: 4px 8px; font-size: 11px;" id="size_XS">XS</button>
+                <button onclick="setSize('S')" class="view-btn" style="padding: 4px 8px; font-size: 11px;" id="size_S">S</button>
+                <button onclick="setSize('M')" class="view-btn active" style="padding: 4px 8px; font-size: 11px;" id="size_M">M</button>
+                <button onclick="setSize('L')" class="view-btn" style="padding: 4px 8px; font-size: 11px;" id="size_L">L</button>
+                <button onclick="setSize('XL')" class="view-btn" style="padding: 4px 8px; font-size: 11px;" id="size_XL">XL</button>
+                <button onclick="setSize('XXL')" class="view-btn" style="padding: 4px 8px; font-size: 11px;" id="size_XXL">XXL</button>
+            </div>
+            <div class="divider"></div>
+            <button id="toggle_ghost" class="view-btn active" onclick="toggleGhost()" data-tooltip="Ghosting (H)">Ghosting: ON</button>
+            <div class="divider"></div>
+            <div class="divider"></div>
+            <button id="toggle_measurements" class="view-btn" onclick="toggleMeasurements()" data-tooltip="Show Measurements (U)">Labels: OFF</button>
+            <div class="divider"></div>
+            <button id="toggle_3d" class="view-btn" onclick="toggle3D()" data-tooltip="3D View (4)">3D View</button>
         </div>
-
-        <button class="btn-primary" onclick="nextStep()" style="margin-top: 20px;">Pay <span id="payment-total">$0</span> & Continue</button>
-      </div>
-
-      <!-- Step 3: Security -->
-      <div class="step-section" id="step-security">
-        <h2>Set Security</h2>
-        <p>Create a password to secure your professional workspace.</p>
-        <div class="input-group">
-          <label>Password</label>
-          <input class="input" type="password" id="pass-1" placeholder="••••••••">
+        
+        <div class="topbar-right">
+            <button onclick="logout()" class="icon-btn-text" data-tooltip="Logout"><span class="material-symbols-outlined">logout</span></button>
+            <button onclick="saveProject()" class="icon-btn-text" data-tooltip="Save Project"><span class="material-symbols-outlined">save</span></button>
+            <button onclick="document.getElementById('fileUpload').click()" class="icon-btn-text" data-tooltip="Load Project"><span class="material-symbols-outlined">folder_open</span></button>
+            <button onclick="showHelp()" class="icon-btn-text" data-tooltip="Help Guide"><span class="material-symbols-outlined">help</span></button>
+            <input type="file" id="fileUpload" accept=".json" style="display: none;" onchange="loadProject(event)">
         </div>
-        <div class="input-group">
-          <label>Confirm Password</label>
-          <input class="input" type="password" id="pass-2" placeholder="••••••••">
-        </div>
-        <button class="btn-primary" onclick="finishFlow()">Create My Login</button>
-      </div>
-
-      <!-- Step 4: Login -->
-      <div class="step-section" id="step-login">
-        <h2>Welcome Back</h2>
-        <p>Enter your security password to access your workspace.</p>
-        <div class="input-group">
-          <label>Password</label>
-          <input class="input" type="password" id="login-pass" placeholder="••••••••">
-        </div>
-        <button class="btn-primary" onclick="verifyLogin()">Log In</button>
-      </div>
     </div>
-  </div>
 
-  <script>
-    // Initialize Lucide Icons
-    lucide.createIcons();
+    <script>
+        function logout() {
+            localStorage.removeItem('designer_auth');
+            window.location.href = '../index.html';
+        }
+    </script>
 
-    let currentStep = 1;
-    let selectedPlan = 'free';
-    let basePrice = 0;
-    let discount = 0;
+    <!-- HELP MODAL -->
+    <div id="helpModal" class="modal-overlay">
+        <div class="modal-content">
+            <button class="modal-close" onclick="hideHelp()"><span class="material-symbols-outlined">close</span></button>
+            <h2>Tools Guide</h2>
+            <div class="help-list">
+                <div class="help-item">
+                    <strong>Undo / Redo (Ctrl+Z / Ctrl+Y)</strong>
+                    <p>Standard shortcuts to reverse or re-apply your last actions.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Draw (D)</strong>
+                    <p>Click to add points. They automatically connect into segments.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Move (M) & Select (S)</strong>
+                    <p>Drag to adjust. <strong>Hold Shift/Ctrl</strong> to select and move multiple points at once.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Smooth Bending (M/B)</strong>
+                    <p>Moving an anchor point also moves its handles, preserving local curve smoothness.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Grading (E) & Sizes</strong>
+                    <p>Define X/Y increments in the Inspector. Toggle <strong>XS-XXL</strong> in the Topbar to see scaling.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Cut Segment (C)</strong>
+                    <p>Split any line into two independent segments.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Curve (B)</strong>
+                    <p>Click any segment to add Bezier handles. Drag handles to refine shape.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Mirror (I)</strong>
+                    <p>Reflect your pattern across a selected line (e.g., Center Front).</p>
+                </div>
+                <div class="help-item">
+                    <strong>3D View (4)</strong>
+                    <p>Left-Drag to Rotate, Right-Drag to Pan. Click an anchor to snap focus.</p>
+                </div>
+                <div class="help-item">
+                    <strong>Measure (R)</strong>
+                    <p>Drag between points to see exact production distances.</p>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    const planPrices = {
-      'free': 0,
-      'solo': 9,
-      'business': 29,
-      'corporate': 99,
-      'school': 5
-    };
+    <!-- SAVE MODAL -->
+    <div id="saveModal" class="modal-overlay">
+        <div class="modal-content" style="max-width: 400px;">
+            <button class="modal-close" onclick="hideSave()"><span class="material-symbols-outlined">close</span></button>
+            <h2>Save Project</h2>
+            
+            <div class="modal-group">
+                <label>Project Name</label>
+                <input type="text" id="exportName" value="My Pattern" placeholder="e.g. Summer Dress">
+            </div>
+            
+            <div class="modal-group">
+                <label>Export Format</label>
+                <select id="exportFormat">
+                    <option value="json">.JSON (Editable Workspace)</option>
+                    <option value="svg">.SVG (Vector Graphic / Plotter)</option>
+                    <option value="png">.PNG (Image Snapshot)</option>
+                </select>
+            </div>
+            
+            <button class="modal-btn" onclick="executeSave()">Download</button>
+        </div>
+    </div>
 
-    const vouchers = {
-      'SAVE20': 0.2, // 20% off
-      'SAVE50': 0.5, // 50% off
-      'PROFASHION': 0.3, // 30% off
-      'FREEBOOT': 1.0 // 100% off
-    };
+    <div class="toolbar" id="leftbar">
+        <div class="toolbar-group">
+            <button onclick="setTool('draw')" id="tool_draw" class="icon-btn active" data-tooltip="Draw (D)"><span class="material-symbols-outlined">edit</span></button>
+            <button onclick="setTool('select')" id="tool_select" class="icon-btn" data-tooltip="Select (S)"><span class="material-symbols-outlined">ads_click</span></button>
+            <button onclick="setTool('move')" id="tool_move" class="icon-btn" data-tooltip="Move (M)"><span class="material-symbols-outlined">drag_pan</span></button>
+            <button onclick="setTool('delete')" id="tool_delete" class="icon-btn" data-tooltip="Delete (X)"><span class="material-symbols-outlined">delete</span></button>
+        </div>
 
-    // Particle System
-    const canvas = document.getElementById('bg-canvas');
-    const ctx = canvas.getContext('2d');
-    let particles = [];
+        <div class="toolbar-group">
+            <button onclick="setTool('addPoint')" id="tool_addPoint" class="icon-btn" data-tooltip="Add Point (P)"><span class="material-symbols-outlined">add_circle</span></button>
+            <button onclick="setTool('name')" id="tool_name" class="icon-btn" data-tooltip="Name Point (N)"><span class="material-symbols-outlined">label</span></button>
+            <button onclick="setTool('align')" id="tool_align" class="icon-btn" data-tooltip="Align Point (A)"><span class="material-symbols-outlined">align_horizontal_center</span></button>
+        </div>
 
-    class Particle {
-      constructor() {
-        this.init();
-      }
-      init() {
-        this.x = Math.random() * canvas.width;
-        this.y = Math.random() * canvas.height;
-        this.vx = (Math.random() - 0.5) * 0.3;
-        this.vy = (Math.random() - 0.5) * 0.3;
-        this.size = Math.random() * 2 + 1;
-      }
-      update() {
-        this.x += this.vx;
-        this.y += this.vy;
-        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
-        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
-      }
-      draw() {
-        ctx.beginPath();
-        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(77, 166, 255, 0.4)';
-        ctx.fill();
-      }
-    }
+        <div class="toolbar-group">
+            <button onclick="setTool('segment')" id="tool_segment" class="icon-btn" data-tooltip="Create Segment (L)"><span class="material-symbols-outlined">horizontal_rule</span></button>
+            <button onclick="setTool('cut')" id="tool_cut" class="icon-btn" data-tooltip="Cut Segment (C)"><span class="material-symbols-outlined">content_cut</span></button>
+            <button onclick="setTool('measure')" id="tool_measure" class="icon-btn" data-tooltip="Measure (R)"><span class="material-symbols-outlined">straighten</span></button>
+        </div>
 
-    function initParticles() {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-      particles = [];
-      for (let i = 0; i < 80; i++) {
-        particles.push(new Particle());
-      }
-    }
+        <div class="toolbar-group">
+            <button onclick="setTool('seam')" id="tool_seam" class="icon-btn" data-tooltip="Seam Allowance (O)"><span class="material-symbols-outlined">layers</span></button>
+            <button onclick="setTool('notch')" id="tool_notch" class="icon-btn" data-tooltip="Add Notch (T)"><span class="material-symbols-outlined">shape_line</span></button>
+            <button onclick="setTool('grain')" id="tool_grain" class="icon-btn" data-tooltip="Grainline (G)"><span class="material-symbols-outlined">open_in_full</span></button>
+            <button onclick="setTool('grade')" id="tool_grade" class="icon-btn" data-tooltip="Grading (E)"><span class="material-symbols-outlined">photo_size_select_small</span></button>
+        </div>
 
-    function animateParticles() {
-      ctx.clearRect(0, 0, canvas.width, canvas.height);
-      particles.forEach(p => {
-        p.update();
-        p.draw();
-      });
+        <div class="toolbar-group">
+            <button onclick="setTool('curve')" id="tool_curve" class="icon-btn" data-tooltip="Curve (B)"><span class="material-symbols-outlined">gesture</span></button>
+            <button onclick="setTool('mirror')" id="tool_mirror" class="icon-btn" data-tooltip="Mirror (I)"><span class="material-symbols-outlined">flip</span></button>
+            <button onclick="setTool('text')" id="tool_text" class="icon-btn" data-tooltip="Text (V)"><span class="material-symbols-outlined">text_fields</span></button>
+            <button onclick="setTool('button')" id="tool_button" class="icon-btn" data-tooltip="Add Button (K)"><span class="material-symbols-outlined">radio_button_checked</span></button>
+            <button onclick="setTool('zipper')" id="tool_zipper" class="icon-btn" data-tooltip="Add Zipper (Z)"><span class="material-symbols-outlined">reorder</span></button>
+            <button onclick="setTool('stitch')" id="tool_stitch" class="icon-btn" data-tooltip="Sewing Machine (W)"><span class="material-symbols-outlined">precision_manufacturing</span></button>
+            <button onclick="setTool('clip')" id="tool_clip" class="icon-btn" data-tooltip="Add Clip (C)"><span class="material-symbols-outlined">pin</span></button>
+            <button onclick="setTool('fabric')" id="tool_fabric" class="icon-btn" data-tooltip="Add Fabric (F)"><span class="material-symbols-outlined">texture</span></button>
+        </div>
+    </div>
 
-      // Draw connections
-      for (let i = 0; i < particles.length; i++) {
-        for (let j = i + 1; j < particles.length; j++) {
-          const dx = particles[i].x - particles[j].x;
-          const dy = particles[i].y - particles[j].y;
-          const dist = Math.sqrt(dx * dx + dy * dy);
-          if (dist < 150) {
+    <div class="inspector-panel" id="rightbar">
+        <h3>Properties</h3>
+        <div id="inspector">
+            <div style="color:#64748b; font-size:12px;">Nothing selected</div>
+        </div>
+    </div>
+
+    <canvas id="canvas"></canvas>
+
+    <script>
+        const canvas = document.getElementById("canvas");
+        const ctx = canvas.getContext("2d");
+
+        function resize() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener("resize", resize);
+        resize();
+
+        /* =========================
+           CAMERA & 3D ENGINE
+        ========================= */
+        let camX = 0, camY = 0, zoom = 1;
+        let is3D = false;
+        let camYaw = 0;
+        let camPitch = 0;
+
+        function toggle3D() {
+            is3D = !is3D;
+            document.getElementById("toggle_3d").classList.toggle("active", is3D);
+            if (is3D) {
+                camYaw = Math.PI / 4;
+                camPitch = Math.PI / 6;
+                zoom = 0.5;
+            } else {
+                camYaw = 0;
+                camPitch = 0;
+                zoom = 1;
+            }
+        }
+
+        function project3D(x, y, z) {
+            let dx = x - camX;
+            let dy = y - camY;
+            let dz = z;
+
+            let cosY = Math.cos(camYaw);
+            let sinY = Math.sin(camYaw);
+            let x1 = dx * cosY - dz * sinY;
+            let z1 = dx * sinY + dz * cosY;
+
+            let cosP = Math.cos(camPitch);
+            let sinP = Math.sin(camPitch);
+            let y2 = dy * cosP - z1 * sinP;
+            let z2 = dy * sinP + z1 * cosP;
+
+            let fov = 1000;
+            let scale = fov / (fov + z2 + 500);
+
+            return {
+                x: (x1 * scale * zoom) + canvas.width / 2,
+                y: (y2 * scale * zoom) + canvas.height / 2,
+                scale: scale
+            };
+        }
+
+        function worldToScreen(x, y, z = 0) {
+            if (is3D) return project3D(x, y, z);
+            return {
+                x: (x - camX) * zoom + canvas.width / 2,
+                y: (y - camY) * zoom + canvas.height / 2,
+                scale: 1
+            };
+        }
+
+        function screenToWorld(x, y) {
+            if (is3D) return { x: 0, y: 0 }; // Cannot unproject easily
+            return {
+                x: (x - canvas.width / 2) / zoom + camX,
+                y: (y - canvas.height / 2) / zoom + camY
+            };
+        }
+
+        /* =========================
+           STATE
+        ========================= */
+        let views = {
+            'Front': { points: [], segments: [], grainlines: [], texts: [], buttons: [], zippers: [], stitches: [], clips: [], fabrics: [] },
+            'Back': { points: [], segments: [], grainlines: [], texts: [], buttons: [], zippers: [], stitches: [], clips: [], fabrics: [] },
+            'Side': { points: [], segments: [], grainlines: [], texts: [], buttons: [], zippers: [], stitches: [], clips: [], fabrics: [] }
+        };
+        let currentViewName = 'Front';
+        let showGhost = true;
+        let showMeasurements = false;
+
+        let points = views[currentViewName].points;
+        let segments = views[currentViewName].segments;
+        let grainlines = views[currentViewName].grainlines;
+        let texts = views[currentViewName].texts;
+        let buttons = views[currentViewName].buttons || (views[currentViewName].buttons = []);
+        let zippers = views[currentViewName].zippers || (views[currentViewName].zippers = []);
+        let stitches = views[currentViewName].stitches || (views[currentViewName].stitches = []);
+        let clips = views[currentViewName].clips || (views[currentViewName].clips = []);
+        let fabrics = views[currentViewName].fabrics || (views[currentViewName].fabrics = []);
+        
+        let selectedPoints = [];
+        let dragStartPos = null;
+        let tool = "draw";
+        let drawingStartPoint = null;
+        let lastPoint = null;
+        let gridSize = 25;
+
+        let currentSize = 'M';
+        const sizeMultipliers = { 'XS': -2, 'S': -1, 'M': 0, 'L': 1, 'XL': 2, 'XXL': 3 };
+        const sizeColors = { 'XS': '#94a3b8', 'S': '#38bdf8', 'M': '#22c55e', 'L': '#fbbf24', 'XL': '#f97316', 'XXL': '#ef4444' };
+
+        let currentButtonType = 'standard';
+        let currentButtonSize = 12;
+        let currentZipperType = 'standard';
+        let currentNotchType = 'single';
+        let zipperStart = null;
+        let stitchStart = null;
+        
+        let currentMachine = 'industrial';
+        let currentStitch = 'straight';
+        let currentClipType = 'buckle';
+        let currentClipSize = 25;
+        
+        let currentFabricType = 'jean';
+        let fabricPoints = [];
+        const fabricColors = {
+            'jean': { fill: 'rgba(59, 130, 246, 0.4)', stroke: '#2563eb' },
+            'leather': { fill: 'rgba(120, 53, 15, 0.5)', stroke: '#78350f' },
+            'silk': { fill: 'rgba(224, 242, 254, 0.5)', stroke: '#7dd3fc' },
+            'cotton': { fill: 'rgba(248, 250, 252, 0.5)', stroke: '#cbd5e1' },
+            'linen': { fill: 'rgba(245, 245, 220, 0.5)', stroke: '#d2b48c' }
+        };
+
+        const machineStitches = {
+            'industrial': ['straight', 'backstitch'],
+            'zigzag': ['zigzag', 'satin'],
+            'overlock': ['3-thread', '4-thread'],
+            'coverstitch': ['double-needle', 'triple-needle']
+        };
+
+        let undoStack = [];
+        let redoStack = [];
+
+        function saveHistory() {
+            // Push current state to undo stack
+            // Ensure views is up to date with local pointers
+            views[currentViewName].points = points;
+            views[currentViewName].segments = segments;
+            views[currentViewName].grainlines = grainlines;
+            views[currentViewName].texts = texts;
+            views[currentViewName].buttons = buttons;
+            views[currentViewName].zippers = zippers;
+            views[currentViewName].stitches = stitches;
+            views[currentViewName].clips = clips;
+            views[currentViewName].fabrics = fabrics;
+
+            undoStack.push(JSON.stringify(views));
+            if (undoStack.length > 50) undoStack.shift();
+            redoStack = []; // Clear redo stack on new action
+        }
+
+        function undo() {
+            if (undoStack.length === 0) return;
+            
+            // Push current state to redo
+            views[currentViewName].points = points;
+            views[currentViewName].segments = segments;
+            views[currentViewName].grainlines = grainlines;
+            views[currentViewName].texts = texts;
+            views[currentViewName].buttons = buttons;
+            views[currentViewName].zippers = zippers;
+            views[currentViewName].stitches = stitches;
+            views[currentViewName].clips = clips;
+            views[currentViewName].fabrics = fabrics;
+            redoStack.push(JSON.stringify(views));
+
+            const last = JSON.parse(undoStack.pop());
+            views = last;
+            
+            // Re-sync local pointers
+            points = views[currentViewName].points;
+            segments = views[currentViewName].segments;
+            grainlines = views[currentViewName].grainlines;
+            texts = views[currentViewName].texts || [];
+            buttons = views[currentViewName].buttons || [];
+            zippers = views[currentViewName].zippers || [];
+            stitches = views[currentViewName].stitches || [];
+            clips = views[currentViewName].clips || [];
+            fabrics = views[currentViewName].fabrics || [];
+            
+            selectedPoints = [];
+            updateInspector();
+            draw();
+        }
+
+        function redo() {
+            if (redoStack.length === 0) return;
+
+            // Push current state to undo
+            views[currentViewName].points = points;
+            views[currentViewName].segments = segments;
+            views[currentViewName].grainlines = grainlines;
+            views[currentViewName].texts = texts;
+            views[currentViewName].buttons = buttons;
+            views[currentViewName].zippers = zippers;
+            views[currentViewName].stitches = stitches;
+            views[currentViewName].clips = clips;
+            views[currentViewName].fabrics = fabrics;
+            undoStack.push(JSON.stringify(views));
+
+            const next = JSON.parse(redoStack.pop());
+            views = next;
+
+            // Re-sync local pointers
+            points = views[currentViewName].points;
+            segments = views[currentViewName].segments;
+            grainlines = views[currentViewName].grainlines;
+            texts = views[currentViewName].texts || [];
+            buttons = views[currentViewName].buttons || [];
+            zippers = views[currentViewName].zippers || [];
+            stitches = views[currentViewName].stitches || [];
+            clips = views[currentViewName].clips || [];
+            fabrics = views[currentViewName].fabrics || [];
+
+            selectedPoints = [];
+            updateInspector();
+            draw();
+        }
+
+        let measureStart = null;
+        let seamOffset = 10;
+        let grainlineStart = null;
+
+        /* =========================
+           HELP MODAL
+        ========================= */
+        function showHelp() {
+            document.getElementById('helpModal').style.display = 'flex';
+        }
+
+        function hideHelp() {
+            document.getElementById('helpModal').style.display = 'none';
+        }
+
+        /* =========================
+           SAVE / LOAD
+        ========================= */
+        function saveProject() {
+            document.getElementById('saveModal').style.display = 'flex';
+        }
+
+        function hideSave() {
+            document.getElementById('saveModal').style.display = 'none';
+        }
+
+        function executeSave() {
+            let name = document.getElementById('exportName').value || "pattern";
+            let format = document.getElementById('exportFormat').value;
+
+            // Ensure current view is saved to the dict before exporting
+            views[currentViewName].points = points;
+            views[currentViewName].segments = segments;
+            views[currentViewName].grainlines = grainlines;
+            views[currentViewName].texts = texts;
+            views[currentViewName].buttons = buttons;
+            views[currentViewName].zippers = zippers;
+            views[currentViewName].stitches = stitches;
+            views[currentViewName].clips = clips;
+            views[currentViewName].fabrics = fabrics;
+
+            if (format === 'json') {
+                const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(views, null, 2));
+                downloadFile(dataStr, name + ".json");
+            } 
+            else if (format === 'svg') {
+                // Generate comprehensive SVG from current view
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+                
+                // Helper to update bounds
+                const updateBounds = (x, y) => {
+                    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+                    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+                };
+
+                points.forEach(p => updateBounds(p.x, p.y));
+                if (minX === Infinity) { minX = 0; minY = 0; maxX = 500; maxY = 500; }
+                
+                // Add padding
+                minX -= 50; minY -= 50; maxX += 50; maxY += 50;
+                const width = maxX - minX;
+                const height = maxY - minY;
+
+                let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${width} ${height}" width="${width}px" height="${height}px">\n`;
+                svg += `  <style>
+                    .seam { stroke: black; stroke-width: 2px; fill: none; stroke-linecap: round; }
+                    .grain { stroke: #a855f7; stroke-width: 2px; }
+                    .button { fill: #f8fafc; stroke: #cbd5e1; }
+                    .zipper { stroke: #1e293b; stroke-width: 10px; }
+                    .zipper-teeth { stroke: #fbbf24; stroke-width: 1px; }
+                    .text { font-family: 'Inter', sans-serif; font-size: 12px; fill: black; }
+                    .notch { stroke: #facc15; stroke-width: 2px; }
+                  </style>\n`;
+
+                // 1. Draw closed shape fills (if any)
+                // (Omitted for simplicity in standard SVG output, but could be added as <path>)
+
+                // 2. Draw Segments
+                segments.forEach(s => {
+                    if (s.cp1 && s.cp2) {
+                        svg += `  <path class="seam" d="M ${s.a.x} ${s.a.y} C ${s.cp1.x} ${s.cp1.y}, ${s.cp2.x} ${s.cp2.y}, ${s.b.x} ${s.b.y}" />\n`;
+                    } else {
+                        svg += `  <line class="seam" x1="${s.a.x}" y1="${s.a.y}" x2="${s.b.x}" y2="${s.b.y}" />\n`;
+                    }
+                });
+
+                // 3. Draw Notches
+                points.forEach(p => {
+                    if (p.notch) {
+                        svg += `  <circle class="notch" cx="${p.x}" cy="${p.y}" r="3" />\n`;
+                    }
+                });
+
+                // 4. Draw Grainlines
+                grainlines.forEach(g => {
+                    svg += `  <line class="grain" x1="${g.a.x}" y1="${g.a.y}" x2="${g.b.x}" y2="${g.b.y}" />\n`;
+                });
+
+                // 5. Draw Buttons
+                buttons.forEach(b => {
+                    svg += `  <circle class="button" cx="${b.x}" cy="${b.y}" r="${(b.size || 10)/2}" />\n`;
+                });
+
+                // 6. Draw Annotations
+                texts.forEach(t => {
+                    svg += `  <text class="text" x="${t.x}" y="${t.y}">${t.content}</text>\n`;
+                });
+
+                svg += `</svg>`;
+
+                const dataStr = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+                downloadFile(dataStr, name + "_" + currentViewName + ".svg");
+            }
+            else if (format === 'png') {
+                // Ensure canvas is rendered fresh without grid lines or UI elements if possible, 
+                // but for now we just capture what is on screen
+                const dataStr = canvas.toDataURL("image/png");
+                downloadFile(dataStr, name + "_" + currentViewName + ".png");
+            }
+
+            hideSave();
+        }
+
+        function downloadFile(dataUrl, filename) {
+            const dlAnchorElem = document.createElement('a');
+            dlAnchorElem.setAttribute("href", dataUrl);
+            dlAnchorElem.setAttribute("download", filename);
+            dlAnchorElem.click();
+        }
+
+        function loadProject(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const loadedViews = JSON.parse(e.target.result);
+                    // Validate basic structure
+                    if (loadedViews.Front && loadedViews.Back && loadedViews.Side) {
+                        views = loadedViews;
+                        
+                        // Re-link current view
+                        points = views[currentViewName].points;
+                        segments = views[currentViewName].segments;
+                        grainlines = views[currentViewName].grainlines;
+                        texts = views[currentViewName].texts || [];
+                        buttons = views[currentViewName].buttons || [];
+                        zippers = views[currentViewName].zippers || [];
+                        stitches = views[currentViewName].stitches || [];
+                        clips = views[currentViewName].clips || [];
+                        fabrics = views[currentViewName].fabrics || [];
+                        
+                        selectedPoints = [];
+                        segmentStart = null;
+                        updateInspector();
+                        draw();
+                    } else {
+                        alert("Invalid project file format.");
+                    }
+                } catch (err) {
+                    alert("Error loading project file.");
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        /* =========================
+           VIEW SWITCHER
+        ========================= */
+        function toggleGhost() {
+            showGhost = !showGhost;
+            document.getElementById("toggle_ghost").innerText = showGhost ? "Ghosting: ON" : "Ghosting: OFF";
+            document.getElementById("toggle_ghost").classList.toggle("active", showGhost);
+            draw();
+        }
+
+        function toggleMeasurements() {
+            showMeasurements = !showMeasurements;
+            document.getElementById("toggle_measurements").innerText = showMeasurements ? "Labels: ON" : "Labels: OFF";
+            document.getElementById("toggle_measurements").classList.toggle("active", showMeasurements);
+            draw();
+        }
+
+        function setView(name) {
+            // Save local variables back to the dictionary
+            views[currentViewName].points = points;
+            views[currentViewName].segments = segments;
+            views[currentViewName].grainlines = grainlines;
+            views[currentViewName].texts = texts;
+
+            currentViewName = name;
+            points = views[currentViewName].points;
+            segments = views[currentViewName].segments;
+            grainlines = views[currentViewName].grainlines;
+            texts = views[currentViewName].texts || (views[currentViewName].texts = []);
+            buttons = views[currentViewName].buttons || (views[currentViewName].buttons = []);
+            zippers = views[currentViewName].zippers || (views[currentViewName].zippers = []);
+            stitches = views[currentViewName].stitches || (views[currentViewName].stitches = []);
+            clips = views[currentViewName].clips || (views[currentViewName].clips = []);
+            fabrics = views[currentViewName].fabrics || (views[currentViewName].fabrics = []);
+            fabricPoints = []; // Reset fabric selection
+
+            document.querySelectorAll(".view-btn").forEach(b => b.classList.remove("active"));
+            document.getElementById("view_" + name).classList.add("active");
+
+            // Don't remove the active class from ghost toggle
+            if (showGhost) document.getElementById("toggle_ghost").classList.add("active");
+
+            selectedPoints = [];
+            segmentStart = null;
+            updateInspector();
+            draw();
+        }
+
+        /* =========================
+           INSPECTOR
+        ========================= */
+        function updateInspector() {
+            const ins = document.getElementById("inspector");
+            ins.innerHTML = "";
+
+            if (tool === "seam") {
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Seam Allowance Width</label>
+                        <input type="number" value="${seamOffset}" onchange="seamOffset = parseFloat(this.value); draw();">
+                    </div>
+                `;
+                return;
+            }
+
+            if (tool === "stitch") {
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Machine Type</label>
+                        <select onchange="currentMachine = this.value; updateStitchOptions();">
+                            <option value="industrial">Industrial</option>
+                            <option value="zigzag">Zig-Zag</option>
+                            <option value="overlock">Overlock (Serger)</option>
+                            <option value="coverstitch">Coverstitch</option>
+                        </select>
+                    </div>
+                    <div class="inspector-group">
+                        <label>Stitch Type</label>
+                        <select id="stitchTypeSelect" onchange="currentStitch = this.value;"></select>
+                    </div>
+                    <div style="color:#64748b; font-size:11px; margin-top:8px;">Click two points to draw a stitch line, or click an existing segment.</div>
+                `;
+                updateStitchOptions();
+                return;
+            }
+
+            if (tool === "clip") {
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Clip Type</label>
+                        <select onchange="currentClipType = this.value;">
+                            <option value="buckle">Side-Release Buckle</option>
+                            <option value="suspender">Suspender Clip</option>
+                            <option value="bulldog">Bulldog Clip</option>
+                        </select>
+                    </div>
+                    <div class="inspector-group">
+                        <label>Size (mm)</label>
+                        <input type="number" value="${currentClipSize}" onchange="currentClipSize = parseFloat(this.value);">
+                    </div>
+                    <div style="color:#64748b; font-size:11px; margin-top:8px;">Click on the canvas to place clips.</div>
+                `;
+                return;
+            }
+
+            if (tool === "button") {
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Button Type</label>
+                        <select id="buttonTypeSelect" onchange="currentButtonType = this.value;">
+                            <option value="standard">Standard (T-Shirt)</option>
+                            <option value="jean">Jean Metal Button</option>
+                            <option value="denim">Denim Jacket Tack</option>
+                        </select>
+                    </div>
+                    <div class="inspector-group">
+                        <label>Size (mm)</label>
+                        <input type="number" value="${currentButtonSize}" onchange="currentButtonSize = parseFloat(this.value);">
+                    </div>
+                    <div style="color:#64748b; font-size:11px; margin-top:8px;">Click on the canvas to place buttons.</div>
+                `;
+                return;
+            }
+
+            if (tool === "zipper") {
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Zipper Type</label>
+                        <select id="zipperTypeSelect" onchange="currentZipperType = this.value;">
+                            <option value="standard">Standard (Plastic)</option>
+                            <option value="metal">Metal (Brass)</option>
+                            <option value="invisible">Invisible</option>
+                        </select>
+                    </div>
+                    <div style="color:#64748b; font-size:11px; margin-top:8px;">Click two points to define the zipper span.</div>
+                `;
+                return;
+            }
+
+            if (tool === "notch") {
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Notch Type</label>
+                        <select id="notchTypeSelect" onchange="currentNotchType = this.value;">
+                            <option value="single">Single (T)</option>
+                            <option value="double">Double (TT)</option>
+                            <option value="v">V-Notch</option>
+                        </select>
+                    </div>
+                    <div style="color:#64748b; font-size:11px; margin-top:8px;">Click on a point or segment to add/toggle notches.</div>
+                `;
+                return;
+            }
+
+            if (tool === "fabric") {
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Fabric Type</label>
+                        <select onchange="currentFabricType = this.value;">
+                            <option value="jean" ${currentFabricType === 'jean' ? 'selected' : ''}>Jean</option>
+                            <option value="leather" ${currentFabricType === 'leather' ? 'selected' : ''}>Leather</option>
+                            <option value="silk" ${currentFabricType === 'silk' ? 'selected' : ''}>Silk</option>
+                            <option value="cotton" ${currentFabricType === 'cotton' ? 'selected' : ''}>Cotton</option>
+                            <option value="linen" ${currentFabricType === 'linen' ? 'selected' : ''}>Linen</option>
+                        </select>
+                    </div>
+                    <div style="color:#64748b; font-size:11px; margin-top:8px;">Click points to define fabric area. Press <b>Enter</b> to place.</div>
+                    <div style="color:#64748b; font-size:11px; margin-top:4px;">Points selected: ${fabricPoints.length}</div>
+                `;
+                return;
+            }
+
+            if (selectedPoints.length === 1) {
+                const selectedPoint = selectedPoints[0];
+                // Initialize grading rules if they don't exist
+                if (!selectedPoint.gradeX) selectedPoint.gradeX = 0;
+                if (!selectedPoint.gradeY) selectedPoint.gradeY = 0;
+
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Name</label>
+                        <input type="text" value="${selectedPoint.name || ''}" onchange="saveHistory(); selectedPoints[0].name = this.value; draw();">
+                    </div>
+                    <div class="inspector-group">
+                        <label>X Position</label>
+                        <input type="number" value="${selectedPoint.x}" onchange="saveHistory(); selectedPoints[0].x = parseFloat(this.value); draw();">
+                    </div>
+                    <div class="inspector-group">
+                        <label>Y Position</label>
+                        <input type="number" value="${selectedPoint.y}" onchange="saveHistory(); selectedPoints[0].y = parseFloat(this.value); draw();">
+                    </div>
+                    <div class="inspector-group">
+                        <label>Grade X (Move per Size)</label>
+                        <input type="number" value="${selectedPoint.gradeX}" onchange="saveHistory(); selectedPoints[0].gradeX = parseFloat(this.value); draw();">
+                    </div>
+                    <div class="inspector-group">
+                        <label>Grade Y (Move per Size)</label>
+                        <input type="number" value="${selectedPoint.gradeY}" onchange="saveHistory(); selectedPoints[0].gradeY = parseFloat(this.value); draw();">
+                    </div>
+                `;
+            } else if (selectedPoints.length > 1) {
+                // Multi-point selection summary and bulk grading
+                const avgGradeX = (selectedPoints.reduce((sum, p) => sum + (p.gradeX || 0), 0) / selectedPoints.length).toFixed(2);
+                const avgGradeY = (selectedPoints.reduce((sum, p) => sum + (p.gradeY || 0), 0) / selectedPoints.length).toFixed(2);
+
+                ins.innerHTML = `
+                    <div style="color:#fff; font-size:12px; font-weight:600; margin-bottom:12px;">${selectedPoints.length} points selected</div>
+                    <div class="inspector-group">
+                        <label>Bulk Grade X</label>
+                        <input type="number" value="${avgGradeX}" placeholder="Set for all..." onchange="saveHistory(); const val = parseFloat(this.value); selectedPoints.forEach(p => p.gradeX = val); draw();">
+                    </div>
+                    <div class="inspector-group">
+                        <label>Bulk Grade Y</label>
+                        <input type="number" value="${avgGradeY}" placeholder="Set for all..." onchange="saveHistory(); const val = parseFloat(this.value); selectedPoints.forEach(p => p.gradeY = val); draw();">
+                    </div>
+                    <div style="color:#64748b; font-size:11px; margin-top:8px; line-height:1.4;">Changes here apply to all selected points. Drag points to move the entire group.</div>
+                `;
+            } else {
+                ins.innerHTML = '<div style="color:#64748b; font-size:12px;">Nothing selected</div>';
+            }
+        }
+
+        /* =========================
+           TOOL
+        ========================= */
+        function setTool(t) {
+            tool = t;
+            drawingStartPoint = null;
+            lastPoint = null;
+            fabricPoints = []; // Reset fabric selection
+
+            document.querySelectorAll(".toolbar button").forEach(b => {
+                b.classList.remove("active");
+            });
+
+            let btn = document.getElementById("tool_" + t);
+            if (btn) {
+                btn.classList.add("active");
+            }
+            
+            updateInspector();
+        }
+
+        function setSize(s) {
+            currentSize = s;
+            document.querySelectorAll("#size_selector button").forEach(b => b.classList.remove("active"));
+            document.getElementById("size_" + s).classList.add("active");
+            draw();
+        }
+
+        /* =========================
+           GRID
+        ========================= */
+        function drawGrid() {
+            ctx.strokeStyle = "rgba(255, 255, 255, 0.05)";
+            let step = gridSize * zoom;
+            
+            // Draw axes
+            ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(particles[i].x, particles[i].y);
-            ctx.lineTo(particles[j].x, particles[j].y);
-            ctx.strokeStyle = `rgba(77, 166, 255, ${0.1 * (1 - dist/150)})`;
-            ctx.lineWidth = 1;
+            let origin = worldToScreen(0,0);
+            ctx.moveTo(0, origin.y); ctx.lineTo(canvas.width, origin.y);
+            ctx.moveTo(origin.x, 0); ctx.lineTo(origin.x, canvas.height);
             ctx.stroke();
-          }
+            ctx.lineWidth = 1;
+
+            for (let x = -2000; x < 2000; x += gridSize) {
+                if (x === 0) continue;
+                let p = worldToScreen(x, 0);
+                ctx.beginPath();
+                ctx.moveTo(p.x, 0);
+                ctx.lineTo(p.x, canvas.height);
+                ctx.stroke();
+            }
+
+            for (let y = -2000; y < 2000; y += gridSize) {
+                if (y === 0) continue;
+                let p = worldToScreen(0, y);
+                ctx.beginPath();
+                ctx.moveTo(0, p.y);
+                ctx.lineTo(canvas.width, p.y);
+                ctx.stroke();
+            }
         }
-      }
-      requestAnimationFrame(animateParticles);
-    }
 
-    window.addEventListener('resize', () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
-    });
+        function reflectPoint(p, axisStart, unitDx, unitDy) {
+            let d = (p.x - axisStart.x) * unitDy - (p.y - axisStart.y) * unitDx;
+            return {
+                x: p.x - 2 * d * unitDy,
+                y: p.y + 2 * d * unitDx
+            };
+        }
 
-    // Loader Percentage Animation
-    const loadVal = document.getElementById('load-val');
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += Math.floor(Math.random() * 5) + 1;
-      if (progress >= 100) {
-        progress = 100;
-        clearInterval(interval);
-      }
-      loadVal.innerText = progress;
-    }, 100);
+        function get3DCoord(viewName, p) {
+            if (viewName === 'Front') return { x: p.x, y: p.y, z: -100 };
+            if (viewName === 'Back') return { x: p.x, y: p.y, z: 100 };
+            if (viewName === 'Side') return { x: 100, y: p.y, z: p.x };
+            return { x: p.x, y: p.y, z: 0 };
+        }
 
-    // Transition Splash to Onboarding
-    setTimeout(() => {
-      const splash = document.getElementById('splash');
-      const onboarding = document.getElementById('onboarding');
-      
-      splash.style.opacity = '0';
-      
-      // Start Particles
-      initParticles();
-      animateParticles();
-      canvas.style.opacity = '0.5';
+        /* =========================
+           RENDER
+        ========================= */
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawGrid();
 
-      setTimeout(() => {
-        splash.style.display = 'none';
-        onboarding.classList.add('active');
-      }, 800);
-    }, 3000);
+            if (is3D) {
+                // Render all views in 3D
+                Object.keys(views).forEach(vName => {
+                    let v = views[vName];
+                    ctx.strokeStyle = (vName === currentViewName) ? "#22c55e" : "rgba(34, 197, 94, 0.3)";
+                    ctx.lineWidth = (vName === currentViewName) ? 2 : 1;
+                    
+                    v.segments.forEach(s => {
+                        let cA = get3DCoord(vName, s.a);
+                        let cB = get3DCoord(vName, s.b);
+                        let a = project3D(cA.x, cA.y, cA.z);
+                        let b = project3D(cB.x, cB.y, cB.z);
+                        ctx.beginPath();
+                        ctx.moveTo(a.x, a.y);
+                        
+                        if (s.cp1 && s.cp2) {
+                            let c1 = get3DCoord(vName, s.cp1);
+                            let c2 = get3DCoord(vName, s.cp2);
+                            let p1 = project3D(c1.x, c1.y, c1.z);
+                            let p2 = project3D(c2.x, c2.y, c2.z);
+                            ctx.bezierCurveTo(p1.x, p1.y, p2.x, p2.y, b.x, b.y);
+                        } else {
+                            ctx.lineTo(b.x, b.y);
+                        }
+                        ctx.stroke();
+                    });
+                    
+                    v.points.forEach(p => {
+                        let cP = get3DCoord(vName, p);
+                        let sP = project3D(cP.x, cP.y, cP.z);
+                        if (sP.scale < 0) return; // behind camera
+                        ctx.fillStyle = (selectedPoints.includes(p)) ? "#ef4444" : "#38bdf8";
+                        if (vName !== currentViewName) ctx.fillStyle = "rgba(56, 189, 248, 0.3)";
+                        ctx.beginPath();
+                        ctx.arc(sP.x, sP.y, Math.max(2, 5 * sP.scale), 0, Math.PI * 2);
+                        ctx.fill();
+                        
+                        if (p.name && vName === currentViewName) {
+                            ctx.fillStyle = "#fff";
+                            ctx.fillText(p.name, sP.x + 6, sP.y - 6);
+                        }
+                    });
+                });
+                
+                ctx.lineWidth = 1;
+                requestAnimationFrame(draw);
+                return;
+            }
 
-    // Select Plan logic
-    function selectPlan(plan) {
-      selectedPlan = plan;
-      basePrice = planPrices[plan];
-      discount = 0;
-      localStorage.setItem('selectedPlan', plan);
-      document.getElementById('selected-plan-name').innerText = plan.charAt(0).toUpperCase() + plan.slice(1);
-      document.getElementById('payment-total').innerText = `$${basePrice}`;
-      
-      const onboarding = document.getElementById('onboarding');
-      const flow = document.getElementById('flow-container');
-      
-      onboarding.style.opacity = '0';
-      setTimeout(() => {
-        onboarding.style.display = 'none';
-        flow.style.display = 'flex';
-        requestAnimationFrame(() => {
-          flow.style.opacity = '1';
+            /* ghosting other views */
+            if (showGhost) {
+                ctx.strokeStyle = "rgba(255, 255, 255, 0.1)"; // faint white for other views
+                Object.keys(views).forEach(v => {
+                    if (v !== currentViewName) {
+                        views[v].segments.forEach(s => {
+                            let a = worldToScreen(s.a.x, s.a.y);
+                            let b = worldToScreen(s.b.x, s.b.y);
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y);
+                            ctx.lineTo(b.x, b.y);
+                            ctx.stroke();
+                        });
+                    }
+                });
+            }
+
+            /* segments */
+            const m = sizeMultipliers[currentSize];
+
+            const renderSizeNest = (tool === "grade");
+            const sizesToRender = renderSizeNest ? Object.keys(sizeMultipliers) : [currentSize];
+
+            sizesToRender.forEach(sz => {
+                const mult = sizeMultipliers[sz];
+                const isBase = (sz === currentSize);
+                
+                ctx.save();
+                if (renderSizeNest) {
+                    ctx.strokeStyle = sizeColors[sz];
+                    ctx.globalAlpha = isBase ? 1.0 : 0.3;
+                    ctx.lineWidth = isBase ? 2 : 1;
+                    if (!isBase) ctx.setLineDash([5, 5]);
+                } else {
+                    ctx.strokeStyle = "#22c55e";
+                    ctx.lineWidth = 2;
+                }
+
+                segments.forEach(s => {
+                    let ax = s.a.x + (s.a.gradeX || 0) * mult;
+                    let ay = s.a.y + (s.a.gradeY || 0) * mult;
+                    let bx = s.b.x + (s.b.gradeX || 0) * mult;
+                    let by = s.b.y + (s.b.gradeY || 0) * mult;
+
+                    let a = worldToScreen(ax, ay);
+                    let b = worldToScreen(bx, by);
+                    
+                    // Highlight segments connected to moving points (only for active size)
+                    let isMoving = isBase && isDragging && (selectedPoints.includes(s.a) || selectedPoints.includes(s.b));
+                    if (isMoving) {
+                        ctx.strokeStyle = "#fbbf24";
+                        ctx.lineWidth = 3;
+                    }
+
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    if (s.cp1 && s.cp2) {
+                        let cp1x = s.cp1.x + (s.a.gradeX || 0) * mult; // Relative to anchor
+                        let cp1y = s.cp1.y + (s.a.gradeY || 0) * mult;
+                        let cp2x = s.cp2.x + (s.b.gradeX || 0) * mult;
+                        let cp2y = s.cp2.y + (s.b.gradeY || 0) * mult;
+
+                        let cp1 = worldToScreen(cp1x, cp1y);
+                        let cp2 = worldToScreen(cp2x, cp2y);
+                        ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, b.x, b.y);
+                        
+                        if (isBase && (tool === "curve" || isMoving)) {
+                            ctx.save();
+                            ctx.strokeStyle = isMoving ? "rgba(251, 191, 36, 0.3)" : "rgba(255, 255, 255, 0.2)";
+                            ctx.setLineDash([2, 2]);
+                            ctx.beginPath();
+                            ctx.moveTo(a.x, a.y); ctx.lineTo(cp1.x, cp1.y);
+                            ctx.moveTo(b.x, b.y); ctx.lineTo(cp2.x, cp2.y);
+                            ctx.stroke();
+                            ctx.restore();
+                            
+                            ctx.fillStyle = "#fbbf24";
+                            ctx.beginPath(); ctx.arc(cp1.x, cp1.y, 4, 0, Math.PI*2); ctx.fill();
+                            ctx.beginPath(); ctx.arc(cp2.x, cp2.y, 4, 0, Math.PI*2); ctx.fill();
+                        }
+                    } else {
+                        ctx.lineTo(b.x, b.y);
+                    }
+                    ctx.stroke();
+
+                    // Persistent Measurements
+                    if (showMeasurements && isBase) {
+                        ctx.save();
+                        let midX = (a.x + b.x) / 2;
+                        let midY = (a.y + b.y) / 2;
+                        let dx = Math.abs(bx - ax);
+                        let dy = Math.abs(by - ay);
+                        let len = Math.hypot(dx, dy);
+
+                        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+                        ctx.font = "9px Inter";
+                        ctx.shadowBlur = 4;
+                        ctx.shadowColor = "rgba(0,0,0,0.5)";
+                        
+                        let label = `L: ${len.toFixed(1)}`;
+                        if (dx > 0 && dy > 0 && len > 50) label += ` (W:${dx.toFixed(0)} H:${dy.toFixed(0)})`;
+                        
+                        ctx.fillText(label, midX + 5, midY - 5);
+                        ctx.restore();
+                    }
+                });
+                ctx.restore();
+            });
+            ctx.lineWidth = 1; // Reset
+
+            /* seam allowance preview */
+            if (tool === "seam") {
+                ctx.strokeStyle = "#f43f5e";
+                segments.forEach(s => {
+                    let dx = s.b.y - s.a.y;
+                    let dy = -(s.b.x - s.a.x);
+                    let len = Math.hypot(dx, dy);
+                    dx /= len; dy /= len;
+
+                    let a = worldToScreen(s.a.x + dx * seamOffset, s.a.y + dy * seamOffset);
+                    let b = worldToScreen(s.b.x + dx * seamOffset, s.b.y + dy * seamOffset);
+
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.stroke();
+                });
+            }
+
+            /* grainlines */
+            ctx.strokeStyle = "#a855f7";
+            grainlines.forEach(g => {
+                let a = worldToScreen(g.a.x, g.a.y);
+                let b = worldToScreen(g.b.x, g.b.y);
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
+
+                // Draw arrows at ends
+                let angle = Math.atan2(b.y - a.y, b.x - a.x);
+                let headlen = 10 * zoom;
+                
+                // arrow b
+                ctx.beginPath();
+                ctx.moveTo(b.x, b.y);
+                ctx.lineTo(b.x - headlen * Math.cos(angle - Math.PI / 6), b.y - headlen * Math.sin(angle - Math.PI / 6));
+                ctx.moveTo(b.x, b.y);
+                ctx.lineTo(b.x - headlen * Math.cos(angle + Math.PI / 6), b.y - headlen * Math.sin(angle + Math.PI / 6));
+                ctx.stroke();
+
+                // arrow a
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(a.x + headlen * Math.cos(angle - Math.PI / 6), a.y + headlen * Math.sin(angle - Math.PI / 6));
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(a.x + headlen * Math.cos(angle + Math.PI / 6), a.y + headlen * Math.sin(angle + Math.PI / 6));
+                ctx.stroke();
+            });
+
+            /* measure */
+            if (measureStart) {
+                ctx.strokeStyle = "#eab308";
+                ctx.fillStyle = "#eab308";
+                let m = worldToScreen(mouse.x, mouse.y);
+                let s = worldToScreen(measureStart.x, measureStart.y);
+                
+                // Draw diagonal
+                ctx.beginPath();
+                ctx.moveTo(s.x, s.y);
+                ctx.lineTo(m.x, m.y);
+                ctx.stroke();
+
+                // Draw bounding box (dashed)
+                ctx.setLineDash([5, 5]);
+                ctx.strokeStyle = "rgba(234, 179, 8, 0.5)";
+                ctx.beginPath();
+                ctx.moveTo(s.x, s.y);
+                ctx.lineTo(m.x, s.y);
+                ctx.lineTo(m.x, m.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                let dist = Math.hypot(mouse.x - measureStart.x, mouse.y - measureStart.y);
+                let dx = Math.abs(mouse.x - measureStart.x);
+                let dy = Math.abs(mouse.y - measureStart.y);
+
+                ctx.fillText(`L: ${dist.toFixed(1)}`, m.x + 5, m.y - 15);
+                ctx.fillText(`X: ${dx.toFixed(1)}`, m.x + 5, m.y - 5);
+                ctx.fillText(`Y: ${dy.toFixed(1)}`, m.x + 5, m.y + 5);
+            }
+
+            /* draw tool preview & measurement */
+            if (tool === "draw" && lastPoint) {
+                ctx.strokeStyle = "rgba(34, 197, 94, 0.5)";
+                ctx.setLineDash([5, 5]);
+                let a = worldToScreen(lastPoint.x, lastPoint.y);
+                let b = worldToScreen(mouse.x, mouse.y);
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Measurement labels
+                let dx = Math.abs(mouse.x - lastPoint.x);
+                let dy = Math.abs(mouse.y - lastPoint.y);
+                let len = Math.hypot(dx, dy);
+
+                ctx.fillStyle = "#22c55e";
+                ctx.font = "bold 11px Inter";
+                let midX = (a.x + b.x) / 2;
+                let midY = (a.y + b.y) / 2;
+                
+                ctx.fillText(`L: ${len.toFixed(1)}`, midX + 10, midY - 10);
+                if (dx > 0 && dy > 0) {
+                    ctx.fillStyle = "rgba(34, 197, 94, 0.7)";
+                    ctx.font = "10px Inter";
+                    ctx.fillText(`W: ${dx.toFixed(1)}  H: ${dy.toFixed(1)}`, midX + 10, midY);
+                }
+            }
+
+            /* grainline tool preview */
+            if (tool === "grain" && grainlineStart) {
+                ctx.strokeStyle = "rgba(168, 85, 247, 0.5)";
+                let m = worldToScreen(mouse.x, mouse.y);
+                let s = worldToScreen(grainlineStart.x, grainlineStart.y);
+                ctx.beginPath();
+                ctx.moveTo(s.x, s.y);
+                ctx.lineTo(m.x, m.y);
+                ctx.stroke();
+            }
+
+            /* grading */
+            if (tool === "grade") {
+                ctx.strokeStyle = "rgba(14, 165, 233, 0.5)"; // ghost blue
+                ctx.setLineDash([5, 5]);
+                segments.forEach(s => {
+                    let gxA = s.a.gradeX || 0;
+                    let gyA = s.a.gradeY || 0;
+                    let gxB = s.b.gradeX || 0;
+                    let gyB = s.b.gradeY || 0;
+
+                    let a = worldToScreen(s.a.x + gxA, s.a.y + gyA);
+                    let b = worldToScreen(s.b.x + gxB, s.b.y + gyB);
+                    ctx.beginPath();
+                    ctx.moveTo(a.x, a.y);
+                    ctx.lineTo(b.x, b.y);
+                    ctx.stroke();
+                });
+                ctx.setLineDash([]);
+            }
+
+            /* points */
+            points.forEach(p => {
+                let px = p.x + (p.gradeX || 0) * sizeMultipliers[currentSize];
+                let py = p.y + (p.gradeY || 0) * sizeMultipliers[currentSize];
+                let s = worldToScreen(px, py);
+                ctx.fillStyle = (selectedPoints.includes(p)) ? "#ef4444" : "#38bdf8";
+                ctx.beginPath();
+                ctx.arc(s.x, s.y, 5, 0, Math.PI * 2);
+                ctx.fill();
+
+                if (p.name) {
+                    ctx.fillStyle = "#fff";
+                    ctx.fillText(p.name, s.x + 6, s.y - 6);
+                }
+                
+                if (p.notch) {
+                    ctx.save();
+                    ctx.strokeStyle = "#facc15";
+                    ctx.lineWidth = 2 * zoom;
+                    
+                    // Find orientation based on connected segments if possible
+                    let angle = 0;
+                    let connected = segments.filter(s => s.a === p || s.b === p);
+                    if (connected.length > 0) {
+                        let s = connected[0];
+                        let other = (s.a === p) ? s.b : s.a;
+                        angle = Math.atan2(other.y - p.y, other.x - p.x) + Math.PI/2;
+                    }
+
+                    ctx.translate(s.x, s.y);
+                    ctx.rotate(angle);
+
+                    if (p.notchType === 'v') {
+                        ctx.beginPath();
+                        ctx.moveTo(-5*zoom, -5*zoom); ctx.lineTo(0, 0); ctx.lineTo(5*zoom, -5*zoom);
+                        ctx.stroke();
+                    } else if (p.notchType === 'double') {
+                        ctx.beginPath();
+                        ctx.moveTo(-3*zoom, -6*zoom); ctx.lineTo(-3*zoom, 6*zoom);
+                        ctx.moveTo(3*zoom, -6*zoom); ctx.lineTo(3*zoom, 6*zoom);
+                        ctx.stroke();
+                    } else {
+                        // Default single T
+                        ctx.beginPath();
+                        ctx.moveTo(0, -6*zoom); ctx.lineTo(0, 6*zoom);
+                        ctx.stroke();
+                    }
+                    ctx.restore();
+                }
+            });
+
+            /* annotations */
+            ctx.fillStyle = "#fff";
+            ctx.font = `bold ${Math.max(10, 14 * zoom)}px Inter`;
+            texts.forEach(t => {
+                let s = worldToScreen(t.x, t.y);
+                ctx.fillText(t.content, s.x, s.y);
+            });
+
+            /* buttons */
+            buttons.forEach(b => {
+                let s = worldToScreen(b.x, b.y);
+                let radius = (b.size || 10) / 2 * zoom;
+                
+                ctx.save();
+                if (b.type === 'jean') {
+                    // Metallic Jean Button
+                    let grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, radius);
+                    grad.addColorStop(0, "#94a3b8");
+                    grad.addColorStop(1, "#475569");
+                    ctx.fillStyle = grad;
+                    ctx.strokeStyle = "#1e293b";
+                    ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.arc(s.x, s.y, radius, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    // Inner circle/dent
+                    ctx.beginPath(); ctx.arc(s.x, s.y, radius * 0.7, 0, Math.PI*2); ctx.stroke();
+                    // Engraving hint
+                    ctx.fillStyle = "rgba(0,0,0,0.2)";
+                    ctx.font = `${radius*0.5}px Inter`;
+                    ctx.textAlign = "center";
+                    ctx.fillText("DENIM", s.x, s.y + radius*0.15);
+                } else if (b.type === 'denim') {
+                    // Denim Jacket Button (Brass/Bronze)
+                    let grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, radius);
+                    grad.addColorStop(0, "#fbbf24");
+                    grad.addColorStop(1, "#b45309");
+                    ctx.fillStyle = grad;
+                    ctx.strokeStyle = "#78350f";
+                    ctx.beginPath(); ctx.arc(s.x, s.y, radius, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(s.x, s.y, radius * 0.8, 0, Math.PI*2); ctx.stroke();
+                } else {
+                    // Standard Button
+                    ctx.fillStyle = "#f8fafc";
+                    ctx.strokeStyle = "#cbd5e1";
+                    ctx.beginPath(); ctx.arc(s.x, s.y, radius, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    // Holes
+                    ctx.fillStyle = "#94a3b8";
+                    let holeR = radius * 0.15;
+                    let offset = radius * 0.35;
+                    ctx.beginPath(); ctx.arc(s.x - offset, s.y - offset, holeR, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(s.x + offset, s.y - offset, holeR, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(s.x - offset, s.y + offset, holeR, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(s.x + offset, s.y + offset, holeR, 0, Math.PI*2); ctx.fill();
+                }
+                ctx.restore();
+            });
+
+            /* stitches */
+            stitches.forEach(st => {
+                let a = worldToScreen(st.a.x, st.a.y);
+                let b = worldToScreen(st.b.x, st.b.y);
+                let dx = b.x - a.x;
+                let dy = b.y - a.y;
+                let len = Math.hypot(dx, dy);
+                let angle = Math.atan2(dy, dx);
+
+                ctx.save();
+                ctx.translate(a.x, a.y);
+                ctx.rotate(angle);
+                ctx.strokeStyle = "#cbd5e1";
+                ctx.lineWidth = 1 * zoom;
+
+                if (st.type === 'straight') {
+                    ctx.setLineDash([4 * zoom, 2 * zoom]);
+                    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(len, 0); ctx.stroke();
+                } else if (st.type === 'zigzag') {
+                    ctx.beginPath();
+                    for (let i = 0; i < len; i += 4 * zoom) {
+                        ctx.lineTo(i, -2 * zoom);
+                        ctx.lineTo(i + 2 * zoom, 2 * zoom);
+                    }
+                    ctx.stroke();
+                } else if (st.type === 'overlock') {
+                    ctx.beginPath();
+                    for (let i = 0; i < len; i += 5 * zoom) {
+                        ctx.moveTo(i, -3*zoom); ctx.lineTo(i+3*zoom, 3*zoom);
+                        ctx.moveTo(i+3*zoom, -3*zoom); ctx.lineTo(i, 3*zoom);
+                    }
+                    ctx.stroke();
+                } else if (st.type.includes('needle')) {
+                    let offset = 2 * zoom;
+                    ctx.setLineDash([4 * zoom, 2 * zoom]);
+                    ctx.beginPath(); ctx.moveTo(0, -offset); ctx.lineTo(len, -offset); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, offset); ctx.lineTo(len, offset); ctx.stroke();
+                    if (st.type.includes('triple')) {
+                        ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(len, 0); ctx.stroke();
+                    }
+                } else {
+                    ctx.setLineDash([2 * zoom, 2 * zoom]);
+                    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(len, 0); ctx.stroke();
+                }
+                ctx.restore();
+            });
+
+            /* zippers */
+            zippers.forEach(z => {
+                let a = worldToScreen(z.a.x, z.a.y);
+                let b = worldToScreen(z.b.x, z.b.y);
+                let dx = b.x - a.x;
+                let dy = b.y - a.y;
+                let len = Math.hypot(dx, dy);
+                let angle = Math.atan2(dy, dx);
+
+                ctx.save();
+                ctx.translate(a.x, a.y);
+                ctx.rotate(angle);
+
+                if (z.type === 'invisible') {
+                    ctx.strokeStyle = "rgba(255,255,255,0.3)";
+                    ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(len, 0); ctx.stroke();
+                } else {
+                    // Tape
+                    ctx.strokeStyle = "#1e293b";
+                    ctx.lineWidth = 12 * zoom;
+                    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(len, 0); ctx.stroke();
+
+                    // Teeth
+                    ctx.strokeStyle = (z.type === 'metal') ? "#fbbf24" : "#475569";
+                    ctx.lineWidth = 2 * zoom;
+                    let step = 4 * zoom;
+                    for (let i = 0; i < len; i += step) {
+                        ctx.beginPath(); ctx.moveTo(i, -3*zoom); ctx.lineTo(i, 3*zoom); ctx.stroke();
+                    }
+                    
+                    // Puller
+                    ctx.fillStyle = (z.type === 'metal') ? "#f59e0b" : "#64748b";
+                    ctx.fillRect(0, -4*zoom, 8*zoom, 8*zoom);
+                    ctx.beginPath(); ctx.arc(4*zoom, 8*zoom, 2*zoom, 0, Math.PI*2); ctx.fill();
+                }
+                ctx.restore();
+            });
+
+            /* clips */
+            clips.forEach(cl => {
+                let s = worldToScreen(cl.x, cl.y);
+                let w = cl.size * zoom;
+                let h = w * 0.6;
+                
+                ctx.save();
+                ctx.translate(s.x, s.y);
+                
+                if (cl.type === 'buckle') {
+                    ctx.fillStyle = "#1e293b";
+                    ctx.fillRect(-w/2, -h/2, w, h);
+                    ctx.fillStyle = "#334155";
+                    ctx.fillRect(-w*0.4, -h*0.3, w*0.8, h*0.6);
+                    ctx.strokeStyle = "#475569";
+                    ctx.strokeRect(-w/2, -h/2, w, h);
+                } else if (cl.type === 'suspender') {
+                    ctx.strokeStyle = "#94a3b8";
+                    ctx.lineWidth = 2 * zoom;
+                    ctx.strokeRect(-w*0.3, -h/2, w*0.6, h);
+                    ctx.fillStyle = "#cbd5e1";
+                    ctx.fillRect(-w/2, 0, w, h/2);
+                    ctx.strokeRect(-w/2, 0, w, h/2);
+                } else {
+                    // Bulldog Clip
+                    ctx.fillStyle = "#475569";
+                    ctx.beginPath();
+                    ctx.moveTo(-w/2, h/2); ctx.lineTo(w/2, h/2); ctx.lineTo(w/4, -h/2); ctx.lineTo(-w/4, -h/2);
+                    ctx.closePath(); ctx.fill();
+                    ctx.strokeStyle = "#94a3b8";
+                    ctx.beginPath();
+                    ctx.arc(0, -h*0.8, w/4, 0, Math.PI*2); ctx.stroke();
+                }
+                ctx.restore();
+            });
+
+            /* fabrics */
+            fabrics.forEach(f => {
+                const colors = fabricColors[f.type] || fabricColors.jean;
+                ctx.fillStyle = colors.fill;
+                ctx.strokeStyle = colors.stroke;
+                ctx.lineWidth = 2 * zoom;
+
+                ctx.beginPath();
+                f.points.forEach((p, idx) => {
+                    let px = p.x + (p.gradeX || 0) * sizeMultipliers[currentSize];
+                    let py = p.y + (p.gradeY || 0) * sizeMultipliers[currentSize];
+                    let s = worldToScreen(px, py);
+                    if (idx === 0) ctx.moveTo(s.x, s.y);
+                    else ctx.lineTo(s.x, s.y);
+                });
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            });
+
+            /* fabric creation preview */
+            if (tool === 'fabric' && fabricPoints.length > 0) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.strokeStyle = '#fff';
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                fabricPoints.forEach((p, idx) => {
+                    let s = worldToScreen(p.x, p.y);
+                    if (idx === 0) ctx.moveTo(s.x, s.y);
+                    else ctx.lineTo(s.x, s.y);
+                });
+                // Line to mouse
+                let mPos = worldToScreen(mouse.x, mouse.y);
+                ctx.lineTo(mPos.x, mPos.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Highlight selected points
+                fabricPoints.forEach(p => {
+                    let s = worldToScreen(p.x, p.y);
+                    ctx.fillStyle = "#fff";
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            /* pieces & fills */
+            const pieces = [];
+            const visited = new Set();
+            segments.forEach(seg => {
+                if (visited.has(seg)) return;
+                const piece = { segments: [], points: new Set() };
+                const stack = [seg];
+                while (stack.length > 0) {
+                    const s = stack.pop();
+                    if (visited.has(s)) continue;
+                    visited.add(s);
+                    piece.segments.push(s);
+                    piece.points.add(s.a);
+                    piece.points.add(s.b);
+                    segments.forEach(other => {
+                        if (!visited.has(other) && (other.a === s.a || other.a === s.b || other.b === s.a || other.b === s.b)) {
+                            stack.push(other);
+                        }
+                    });
+                }
+                pieces.push(piece);
+            });
+
+            pieces.forEach(piece => {
+                // Check if piece is closed (every point in the piece has at least 2 connections within the piece)
+                const counts = new Map();
+                piece.segments.forEach(s => {
+                    counts.set(s.a, (counts.get(s.a) || 0) + 1);
+                    counts.set(s.b, (counts.get(s.b) || 0) + 1);
+                });
+                const isClosed = Array.from(piece.points).every(p => counts.get(p) >= 2);
+
+                if (isClosed && piece.segments.length > 2) {
+                    ctx.beginPath();
+                    // Simple ordering for convex-ish shapes (not perfect but good for preview)
+                    // Better approach: start at a point and follow segments
+                    let curr = piece.segments[0].a;
+                    let first = curr;
+                    let segs = [...piece.segments];
+                    ctx.moveTo(worldToScreen(curr.x + (curr.gradeX || 0) * m, curr.y + (curr.gradeY || 0) * m).x, 
+                               worldToScreen(curr.x + (curr.gradeX || 0) * m, curr.y + (curr.gradeY || 0) * m).y);
+                    
+                    for (let i = 0; i < piece.segments.length; i++) {
+                        let nextSegIdx = segs.findIndex(s => s.a === curr || s.b === curr);
+                        if (nextSegIdx === -1) break;
+                        let nextSeg = segs.splice(nextSegIdx, 1)[0];
+                        let nextP = (nextSeg.a === curr) ? nextSeg.b : nextSeg.a;
+                        let p = worldToScreen(nextP.x + (nextP.gradeX || 0) * m, nextP.y + (nextP.gradeY || 0) * m);
+                        
+                        if (nextSeg.cp1 && nextSeg.cp2) {
+                            let cp1 = (nextSeg.a === curr) ? nextSeg.cp1 : nextSeg.cp2;
+                            let cp2 = (nextSeg.a === curr) ? nextSeg.cp2 : nextSeg.cp1;
+                            let sCp1 = worldToScreen(cp1.x + (curr.gradeX || 0) * m, cp1.y + (curr.gradeY || 0) * m);
+                            let sCp2 = worldToScreen(cp2.x + (nextP.gradeX || 0) * m, cp2.y + (nextP.gradeY || 0) * m);
+                            ctx.bezierCurveTo(sCp1.x, sCp1.y, sCp2.x, sCp2.y, p.x, p.y);
+                        } else {
+                            ctx.lineTo(p.x, p.y);
+                        }
+                        curr = nextP;
+                    }
+                    ctx.fillStyle = "rgba(99, 102, 241, 0.05)";
+                    ctx.fill();
+
+                    // Piece-level Dimensions (Total W/H)
+                    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+                    piece.points.forEach(p => {
+                        let px = p.x + (p.gradeX || 0) * m;
+                        let py = p.y + (p.gradeY || 0) * m;
+                        minX = Math.min(minX, px); maxX = Math.max(maxX, px);
+                        minY = Math.min(minY, py); maxY = Math.max(maxY, py);
+                    });
+                    
+                    let totalW = maxX - minX;
+                    let totalH = maxY - minY;
+                    let sMin = worldToScreen(minX, minY);
+                    let sMax = worldToScreen(maxX, maxY);
+                    
+                    ctx.fillStyle = "rgba(99, 102, 241, 0.8)";
+                    ctx.font = "bold 11px Inter";
+                    ctx.fillText(`TOTAL - W: ${totalW.toFixed(1)} H: ${totalH.toFixed(1)}`, sMin.x, sMax.y + 15);
+                }
+            });
+
+            requestAnimationFrame(draw);
+        }
+        draw();
+
+        /* =========================
+           HELPERS
+        ========================= */
+        function snap(x, y) {
+            return {
+                x: Math.round(x / gridSize) * gridSize,
+                y: Math.round(y / gridSize) * gridSize
+            };
+        }
+
+        function findPoint(pos) {
+            return points.find(p => Math.hypot(p.x - pos.x, p.y - pos.y) < 10);
+        }
+
+        function findClosestSegment(pos) {
+            let minDist = 10;
+            let closestSegment = null;
+            let projection = null;
+
+            segments.forEach(s => {
+                let l2 = Math.pow(s.a.x - s.b.x, 2) + Math.pow(s.a.y - s.b.y, 2);
+                if (l2 === 0) return;
+
+                let t = ((pos.x - s.a.x) * (s.b.x - s.a.x) + (pos.y - s.a.y) * (s.b.y - s.a.y)) / l2;
+                t = Math.max(0, Math.min(1, t));
+
+                let projX = s.a.x + t * (s.b.x - s.a.x);
+                let projY = s.a.y + t * (s.b.y - s.a.y);
+
+                let dist = Math.hypot(pos.x - projX, pos.y - projY);
+                if (dist < minDist) {
+                    minDist = dist;
+                    closestSegment = s;
+                    projection = { x: projX, y: projY };
+                }
+            });
+
+            return { segment: closestSegment, projection };
+        }
+
+        function updateStitchOptions() {
+            const sel = document.getElementById("stitchTypeSelect");
+            if (!sel) return;
+            sel.innerHTML = "";
+            machineStitches[currentMachine].forEach(st => {
+                const opt = document.createElement("option");
+                opt.value = st;
+                opt.textContent = st.charAt(0).toUpperCase() + st.slice(1).replace("-", " ");
+                sel.appendChild(opt);
+            });
+            currentStitch = machineStitches[currentMachine][0];
+        }
+
+        /* =========================
+           MOUSE
+        ========================= */
+        let mouse = { x: 0, y: 0 };
+        let isDragging = false;
+        let segmentStart = null;
+        let activeCurveSegment = null;
+        let activeCP = null; // 1 or 2
+
+        canvas.addEventListener("mousedown", e => {
+            if (is3D) {
+                // Check for anchor point click
+                let clickedPoint = null;
+                let clickedView = null;
+                Object.keys(views).forEach(vName => {
+                    views[vName].points.forEach(p => {
+                        let cP = get3DCoord(vName, p);
+                        let sP = project3D(cP.x, cP.y, cP.z);
+                        if (sP.scale > 0 && Math.hypot(e.clientX - sP.x, e.clientY - sP.y) < 15) {
+                            clickedPoint = p;
+                            clickedView = vName;
+                        }
+                    });
+                });
+
+                if (clickedPoint) {
+                    let cP = get3DCoord(clickedView, clickedPoint);
+                    camX = cP.x;
+                    camY = cP.y;
+                    // Reset yaw and pitch to face the view directly
+                    if (clickedView === 'Front') { camYaw = 0; camPitch = 0; }
+                    else if (clickedView === 'Back') { camYaw = Math.PI; camPitch = 0; }
+                    else if (clickedView === 'Side') { camYaw = Math.PI / 2; camPitch = 0; }
+                    zoom = 2.0;
+                }
+                return; // Disable other drawing tools in 3D
+            }
+
+            let rect = canvas.getBoundingClientRect();
+            let w = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+            let pos = snap(w.x, w.y);
+            mouse = pos;
+
+            let p = findPoint(pos);
+
+            // Destructive / Major state actions save history
+            if (["draw", "addPoint", "move", "delete", "cut", "notch", "grain", "name", "align", "curve", "mirror", "text", "segment", "button", "zipper", "stitch", "clip", "fabric"].includes(tool)) {
+                if (tool === "move" && !p) { /* no move */ }
+                else if (tool === "select") { /* no history for selection */ }
+                else if (tool === "grade") { /* no history for grade tool activation */ }
+                else {
+                    saveHistory();
+                }
+            }
+
+            if (tool === "draw") {
+                if (p) {
+                    // Clicked an existing point
+                    if (p === drawingStartPoint && lastPoint && lastPoint !== p) {
+                        // Close the loop
+                        segments.push({ a: lastPoint, b: p });
+                        drawingStartPoint = null;
+                        lastPoint = null;
+                    } else {
+                        // Connect to existing point
+                        if (lastPoint && lastPoint !== p) {
+                            segments.push({ a: lastPoint, b: p });
+                        }
+                        if (!drawingStartPoint) drawingStartPoint = p;
+                        lastPoint = p;
+                    }
+                } else {
+                    // Create new point
+                    let newP = { x: pos.x, y: pos.y };
+                    points.push(newP);
+                    
+                    if (lastPoint) {
+                        segments.push({ a: lastPoint, b: newP });
+                    }
+                    
+                    if (!drawingStartPoint) drawingStartPoint = newP;
+                    lastPoint = newP;
+                }
+            }
+
+            if (tool === "addPoint") {
+                let newP = { x: pos.x, y: pos.y };
+                points.push(newP);
+            }
+
+            if (tool === "select" || tool === "grade") {
+                if (p) {
+                    if (e.shiftKey || e.ctrlKey) {
+                        if (selectedPoints.includes(p)) {
+                            selectedPoints = selectedPoints.filter(pt => pt !== p);
+                        } else {
+                            selectedPoints.push(p);
+                        }
+                    } else {
+                        selectedPoints = [p];
+                    }
+                } else {
+                    // Clicked empty space or segment?
+                    let { segment } = findClosestSegment(pos);
+                    if (segment) {
+                        // Select entire piece
+                        const piecePoints = new Set();
+                        const visited = new Set();
+                        const stack = [segment];
+                        while (stack.length > 0) {
+                            const s = stack.pop();
+                            if (visited.has(s)) continue;
+                            visited.add(s);
+                            piecePoints.add(s.a);
+                            piecePoints.add(s.b);
+                            segments.forEach(other => {
+                                if (!visited.has(other) && (other.a === s.a || other.a === s.b || other.b === s.a || other.b === s.b)) {
+                                    stack.push(other);
+                                }
+                            });
+                        }
+                        selectedPoints = Array.from(piecePoints);
+                    } else {
+                        selectedPoints = [];
+                    }
+                }
+                updateInspector();
+            }
+
+            if (tool === "move" && p) {
+                if (e.shiftKey || e.ctrlKey) {
+                    if (!selectedPoints.includes(p)) {
+                        selectedPoints.push(p);
+                    }
+                } else {
+                    if (!selectedPoints.includes(p)) {
+                        selectedPoints = [p];
+                    }
+                }
+                isDragging = true;
+                dragStartPos = { x: mouse.x, y: mouse.y };
+                updateInspector();
+            }
+
+            if (tool === "segment") {
+                if (!segmentStart && p) {
+                    segmentStart = p;
+                } else if (segmentStart && p) {
+                    segments.push({ a: segmentStart, b: p });
+                    segmentStart = null;
+                }
+            }
+
+            if (tool === "measure") {
+                measureStart = pos;
+            }
+
+            if (tool === "delete" && p) {
+                let ptsToDelete = selectedPoints.includes(p) ? selectedPoints : [p];
+                points = points.filter(pt => !ptsToDelete.includes(pt));
+                segments = segments.filter(s => !ptsToDelete.includes(s.a) && !ptsToDelete.includes(s.b));
+                selectedPoints = selectedPoints.filter(pt => !ptsToDelete.includes(pt));
+                updateInspector();
+            }
+            
+            if (tool === "cut" && !p) {
+                let { segment, projection } = findClosestSegment(pos);
+                if (segment && projection) {
+                    let newP = { x: projection.x, y: projection.y };
+                    points.push(newP);
+                    
+                    segments.push({ a: segment.a, b: newP });
+                    segments.push({ a: newP, b: segment.b });
+                    
+                    segments = segments.filter(s => s !== segment);
+                }
+            }
+
+            if (tool === "notch") {
+                if (p) {
+                    p.notch = !p.notch;
+                    p.notchType = currentNotchType;
+                } else {
+                    let { segment, projection } = findClosestSegment(pos);
+                    if (segment && projection) {
+                        let newP = { x: projection.x, y: projection.y, notch: true, notchType: currentNotchType };
+                        points.push(newP);
+                        
+                        // Split segment
+                        segments.push({ 
+                            a: segment.a, b: newP, 
+                            cp1: segment.cp1, cp2: segment.cp2 // Note: simple split, curves might need refinement
+                        });
+                        segments.push({ a: newP, b: segment.b });
+                        segments = segments.filter(s => s !== segment);
+                    }
+                }
+            }
+
+            if (tool === "grain") {
+                if (!grainlineStart) {
+                    grainlineStart = pos;
+                } else {
+                    grainlines.push({ a: grainlineStart, b: pos });
+                    grainlineStart = null;
+                }
+            }
+
+            if (tool === "name" && p) {
+                let name = prompt("Point name:");
+                if (name) p.name = name;
+                updateInspector();
+            }
+
+            if (tool === "align" && selectedPoints.length > 0 && p) {
+                let reference = selectedPoints[selectedPoints.length - 1];
+                p.y = reference.y;
+                updateInspector();
+            }
+
+            if (tool === "curve") {
+                // Check if clicking existing control points
+                let foundCP = false;
+                segments.forEach(s => {
+                    if (s.cp1 && s.cp2) {
+                        if (Math.hypot(pos.x - s.cp1.x, pos.y - s.cp1.y) < 10) { activeCurveSegment = s; activeCP = 1; foundCP = true; }
+                        else if (Math.hypot(pos.x - s.cp2.x, pos.y - s.cp2.y) < 10) { activeCurveSegment = s; activeCP = 2; foundCP = true; }
+                    }
+                });
+
+                if (!foundCP) {
+                    let { segment } = findClosestSegment(pos);
+                    if (segment) {
+                        segment.cp1 = { x: segment.a.x + (segment.b.x - segment.a.x)/3, y: segment.a.y + (segment.b.y - segment.a.y)/3 };
+                        segment.cp2 = { x: segment.a.x + (segment.b.x - segment.a.x)*2/3, y: segment.a.y + (segment.b.y - segment.a.y)*2/3 };
+                        activeCurveSegment = segment;
+                        activeCP = 1;
+                    }
+                }
+            }
+
+            if (tool === "mirror") {
+                let { segment } = findClosestSegment(pos);
+                if (segment) {
+                    let p1 = segment.a, p2 = segment.b;
+                    let dx = p2.x - p1.x, dy = p2.y - p1.y;
+                    let len = Math.hypot(dx, dy);
+                    if (len > 0) {
+                        dx /= len; dy /= len;
+                        let pointMap = new Map();
+                        let newPts = [];
+                        points.forEach(p => {
+                            let d = (p.x - p1.x) * dy - (p.y - p1.y) * dx;
+                            if (Math.abs(d) < 1) return; // ignore points on axis
+                            let np = reflectPoint(p, p1, dx, dy);
+                            newPts.push(np);
+                            pointMap.set(p, np);
+                        });
+                        newPts.forEach(p => points.push(p));
+                        segments.forEach(s => {
+                            let na = pointMap.get(s.a) || s.a;
+                            let nb = pointMap.get(s.b) || s.b;
+                            if (na === s.a && nb === s.b) return;
+                            segments.push({ 
+                                a: na, b: nb, 
+                                cp1: s.cp1 ? reflectPoint(s.cp1, p1, dx, dy) : null,
+                                cp2: s.cp2 ? reflectPoint(s.cp2, p1, dx, dy) : null
+                            });
+                        });
+                    }
+                }
+            }
+
+            if (tool === "text") {
+                let content = prompt("Annotation text:");
+                if (content) texts.push({ x: pos.x, y: pos.y, content });
+            }
+
+            if (tool === "button") {
+                buttons.push({
+                    x: pos.x,
+                    y: pos.y,
+                    type: currentButtonType,
+                    size: currentButtonSize
+                });
+            }
+
+            if (tool === "zipper") {
+                if (!zipperStart) {
+                    zipperStart = pos;
+                } else {
+                    zippers.push({
+                        a: zipperStart,
+                        b: pos,
+                        type: currentZipperType
+                    });
+                    zipperStart = null;
+                }
+            }
+
+            if (tool === "stitch") {
+                let { segment } = findClosestSegment(pos);
+                if (segment) {
+                    stitches.push({ a: segment.a, b: segment.b, type: currentStitch });
+                } else if (!stitchStart) {
+                    stitchStart = pos;
+                } else {
+                    stitches.push({ a: stitchStart, b: pos, type: currentStitch });
+                    stitchStart = null;
+                }
+            }
+
+            if (tool === "clip") {
+                clips.push({
+                    x: pos.x,
+                    y: pos.y,
+                    type: currentClipType,
+                    size: currentClipSize
+                });
+            }
+
+            if (tool === "fabric") {
+                if (p) {
+                    if (!fabricPoints.includes(p)) {
+                        fabricPoints.push(p);
+                    } else {
+                        // Toggle off if clicked again
+                        fabricPoints = fabricPoints.filter(fp => fp !== p);
+                    }
+                } else {
+                    let newP = { x: pos.x, y: pos.y };
+                    points.push(newP);
+                    fabricPoints.push(newP);
+                }
+                updateInspector();
+            }
         });
-      }, 400);
-    }
 
-    function applyVoucher() {
-      const input = document.getElementById('voucher-input').value.toUpperCase();
-      const display = document.getElementById('voucher-display');
-      const discountEl = document.getElementById('discount-amount');
-      const totalEl = document.getElementById('payment-total');
+        canvas.addEventListener("mousemove", e => {
+            if (is3D && e.buttons === 1) {
+                // Left click drag to rotate camera
+                camYaw += e.movementX * 0.01;
+                camPitch -= e.movementY * 0.01;
+                // Constrain pitch to avoid flipping
+                camPitch = Math.max(-Math.PI/2 + 0.1, Math.min(Math.PI/2 - 0.1, camPitch));
+                return;
+            } else if (is3D && e.buttons === 2) {
+                // Right click drag to pan camera
+                camX -= e.movementX / zoom;
+                camY -= e.movementY / zoom;
+                return;
+            }
 
-      if (vouchers[input]) {
-        discount = basePrice * vouchers[input];
-        const newTotal = basePrice - discount;
-        
-        display.style.display = 'block';
-        discountEl.innerText = `-$${discount.toFixed(2)}`;
-        totalEl.innerText = `$${newTotal.toFixed(2)}`;
-        
-        alert("Voucher applied successfully!");
-      } else {
-        alert("Invalid voucher code.");
-        display.style.display = 'none';
-        discount = 0;
-        totalEl.innerText = `$${basePrice}`;
-      }
-    }
+            if (is3D) return;
 
-    function nextStep() {
-      const s1 = document.getElementById('step-registration');
-      const s2 = document.getElementById('step-payment');
-      const s3 = document.getElementById('step-security');
-      const d1 = document.getElementById('dot-1');
-      const d2 = document.getElementById('dot-2');
-      const d3 = document.getElementById('dot-3');
+            let rect = canvas.getBoundingClientRect();
+            let w = screenToWorld(e.clientX - rect.left, e.clientY - rect.top);
+            mouse = snap(w.x, w.y);
 
-      if (currentStep === 1) {
-        const name = document.getElementById('user-name').value;
-        const email = document.getElementById('user-email').value;
-        if (!name || !email) {
-          alert("Please fill in your details.");
-          return;
+            if (isDragging && selectedPoints.length > 0) {
+                let dx = mouse.x - dragStartPos.x;
+                let dy = mouse.y - dragStartPos.y;
+                
+                if (dx !== 0 || dy !== 0) {
+                    // Track moved points to update control points once per segment
+                    const movedPoints = new Set(selectedPoints);
+
+                    selectedPoints.forEach(p => {
+                        p.x += dx;
+                        p.y += dy;
+                    });
+
+                    // Update control points for all segments connected to moved points
+                    segments.forEach(s => {
+                        if (movedPoints.has(s.a) && s.cp1) {
+                            s.cp1.x += dx;
+                            s.cp1.y += dy;
+                        }
+                        if (movedPoints.has(s.b) && s.cp2) {
+                            s.cp2.x += dx;
+                            s.cp2.y += dy;
+                        }
+                    });
+
+                    dragStartPos = { x: mouse.x, y: mouse.y };
+                }
+            }
+
+            if (activeCurveSegment && activeCP) {
+                if (activeCP === 1) { activeCurveSegment.cp1.x = mouse.x; activeCurveSegment.cp1.y = mouse.y; }
+                else { activeCurveSegment.cp2.x = mouse.x; activeCurveSegment.cp2.y = mouse.y; }
+            }
+
+            if (e.buttons === 2) {
+                camX -= e.movementX / zoom;
+                camY -= e.movementY / zoom;
+            }
+        });
+
+        canvas.addEventListener("mouseup", () => {
+            isDragging = false;
+            measureStart = null;
+            activeCurveSegment = null;
+            activeCP = null;
+        });
+
+        /* zoom */
+        canvas.addEventListener("wheel", e => {
+            e.preventDefault();
+            let factor = e.deltaY < 0 ? 1.1 : 0.9;
+            zoom *= factor;
+        }, { passive: false });
+
+        /* disable right click */
+        canvas.addEventListener("contextmenu", e => e.preventDefault());
+
+        /* hotkeys */
+        window.addEventListener("keydown", e => {
+            // Ignore if user is typing in an input field
+            if (e.target.tagName === "INPUT" || e.target.tagName === "SELECT") return;
+
+            const key = e.key.toLowerCase();
+            const ctrl = e.ctrlKey || e.metaKey;
+
+            if (ctrl && key === 'z') { e.preventDefault(); undo(); return; }
+            if (ctrl && key === 'y') { e.preventDefault(); redo(); return; }
+
+            if (key === 'enter' && tool === 'fabric' && fabricPoints.length >= 3) {
+                saveHistory();
+                fabrics.push({
+                    points: [...fabricPoints],
+                    type: currentFabricType
+                });
+                fabricPoints = [];
+                updateInspector();
+                draw();
+                return;
+            }
+
+            if (key === 'd') setTool('draw');
+            else if (key === 's') setTool('select');
+            else if (key === 'm') setTool('move');
+            else if (key === 'x') setTool('delete');
+            else if (key === 'p') setTool('addPoint');
+            else if (key === 'n') setTool('name');
+            else if (key === 'a') setTool('align');
+            else if (key === 'l') setTool('segment');
+            else if (key === 'c') setTool('cut');
+            else if (key === 'r') setTool('measure');
+            else if (key === 'o') setTool('seam');
+            else if (key === 't') setTool('notch');
+            else if (key === 'g') setTool('grain');
+            else if (key === 'e') setTool('grade');
+            else if (key === 'b') setTool('curve');
+            else if (key === 'i') setTool('mirror');
+            else if (key === 'v') setTool('text');
+            else if (key === 'k') setTool('button');
+            else if (key === 'z') setTool('zipper');
+            else if (key === 'w') setTool('stitch');
+            else if (key === 'f') setTool('fabric');
+            else if (key === '1') setView('Front');
+            else if (key === '2') setView('Back');
+            else if (key === '3') setView('Side');
+            else if (key === '4') toggle3D();
+            else if (key === 'h') toggleGhost();
+            else if (key === 'u') toggleMeasurements();
+        });
+
+        /* =========================
+           TOOLTIP SYSTEM
+        ========================= */
+        class TooltipSystem {
+            constructor() {
+                this.tooltip = document.createElement('div');
+                this.tooltip.className = 'premium-tooltip';
+                document.body.appendChild(this.tooltip);
+                
+                this.init();
+            }
+
+            init() {
+                document.addEventListener('mouseover', (e) => {
+                    const target = e.target.closest('[data-tooltip]');
+                    if (target) {
+                        this.show(target);
+                    }
+                });
+
+                document.addEventListener('mouseout', (e) => {
+                    const target = e.target.closest('[data-tooltip]');
+                    if (target) {
+                        this.hide();
+                    }
+                });
+
+                // Handle clicking a tool (hide tooltip)
+                document.addEventListener('mousedown', () => this.hide());
+            }
+
+            show(target) {
+                const text = target.getAttribute('data-tooltip');
+                if (!text) return;
+
+                this.tooltip.textContent = text;
+                this.tooltip.classList.add('visible');
+
+                const rect = target.getBoundingClientRect();
+                const tooltipRect = this.tooltip.getBoundingClientRect();
+                
+                let top = rect.top + (rect.height / 2) - (tooltipRect.height / 2);
+                let left = rect.right + 10;
+
+                // Boundary detection
+                if (left + tooltipRect.width > window.innerWidth - 10) {
+                    // Try showing on the left
+                    left = rect.left - tooltipRect.width - 10;
+                }
+
+                if (top + tooltipRect.height > window.innerHeight - 10) {
+                    top = window.innerHeight - tooltipRect.height - 10;
+                }
+                
+                if (top < 10) {
+                    top = 10;
+                }
+
+                // If it's the topbar buttons, show below
+                if (target.closest('#topbar')) {
+                    top = rect.bottom + 10;
+                    left = rect.left + (rect.width / 2) - (tooltipRect.width / 2);
+                    
+                    // Center correction
+                    if (left < 10) left = 10;
+                    if (left + tooltipRect.width > window.innerWidth - 10) {
+                        left = window.innerWidth - tooltipRect.width - 10;
+                    }
+                }
+
+                this.tooltip.style.top = `${top}px`;
+                this.tooltip.style.left = `${left}px`;
+            }
+
+            hide() {
+                this.tooltip.classList.remove('visible');
+            }
         }
 
-        s1.classList.remove('active');
-        d1.classList.remove('active');
-        
-        if (selectedPlan === 'free') {
-          // Skip payment
-          currentStep = 3;
-          s3.classList.add('active');
-          d3.classList.add('active');
-        } else {
-          currentStep = 2;
-          s2.classList.add('active');
-          d2.classList.add('active');
-        }
-      } else if (currentStep === 2) {
-        const card = document.getElementById('card-num').value;
-        if (card.length < 16) {
-          alert("Please enter a valid card number.");
-          return;
-        }
-
-        const btn = document.querySelector('#step-payment .btn-primary');
-        const originalText = btn.innerText;
-        btn.innerText = 'Approving Payment...';
-        btn.style.pointerEvents = 'none';
-
-        // Simulate approval
-        setTimeout(() => {
-          s2.classList.remove('active');
-          d2.classList.remove('active');
-          currentStep = 3;
-          s3.classList.add('active');
-          d3.classList.add('active');
-        }, 2000);
-      }
-    }
-
-    function showLogin() {
-      document.querySelectorAll('.step-section').forEach(s => s.classList.remove('active'));
-      document.getElementById('step-login').classList.add('active');
-      document.querySelector('.progress-dots').style.display = 'none';
-    }
-
-    function verifyLogin() {
-      const pass = document.getElementById('login-pass').value;
-      const savedPass = localStorage.getItem('user_pass');
-      
-      if (pass === savedPass) {
-        const btn = document.querySelector('#step-login .btn-primary');
-        btn.innerText = 'Authenticating...';
-        localStorage.setItem('designer_auth', 'true');
-        setTimeout(() => {
-          window.location.href = 'app/index.html';
-        }, 1000);
-      } else {
-        alert("Invalid password.");
-      }
-    }
-
-    function finishFlow() {
-      const pass = document.getElementById('pass-1').value;
-      const confirm = document.getElementById('pass-2').value;
-
-      if (!pass || pass !== confirm) {
-        alert("Passwords do not match!");
-        return;
-      }
-
-      const btn = document.querySelector('#step-security .btn-primary');
-      btn.innerText = 'Creating Workspace...';
-      btn.style.pointerEvents = 'none';
-      
-      // Save session
-      localStorage.setItem('designer_auth', 'true');
-      localStorage.setItem('user_pass', pass);
-      
-      setTimeout(() => {
-        window.location.href = 'app/index.html';
-      }, 1500);
-    }
-  </script>
+        // Initialize Tooltip System
+        new TooltipSystem();
+    </script>
 
 </body>
+
 </html>
