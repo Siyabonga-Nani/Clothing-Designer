@@ -10,6 +10,12 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined" rel="stylesheet">
 
+    <script>
+        // Security Gate
+        if (localStorage.getItem('designer_auth') !== 'true') {
+            window.location.href = '../index.html';
+        }
+    </script>
     <style>
         body {
             margin: 0;
@@ -456,16 +462,27 @@
             <div class="divider"></div>
             <button id="toggle_ghost" class="view-btn active" onclick="toggleGhost()" data-tooltip="Ghosting (H)">Ghosting: ON</button>
             <div class="divider"></div>
+            <div class="divider"></div>
+            <button id="toggle_measurements" class="view-btn" onclick="toggleMeasurements()" data-tooltip="Show Measurements (U)">Labels: OFF</button>
+            <div class="divider"></div>
             <button id="toggle_3d" class="view-btn" onclick="toggle3D()" data-tooltip="3D View (4)">3D View</button>
         </div>
         
         <div class="topbar-right">
+            <button onclick="logout()" class="icon-btn-text" data-tooltip="Logout"><span class="material-symbols-outlined">logout</span></button>
             <button onclick="saveProject()" class="icon-btn-text" data-tooltip="Save Project"><span class="material-symbols-outlined">save</span></button>
             <button onclick="document.getElementById('fileUpload').click()" class="icon-btn-text" data-tooltip="Load Project"><span class="material-symbols-outlined">folder_open</span></button>
             <button onclick="showHelp()" class="icon-btn-text" data-tooltip="Help Guide"><span class="material-symbols-outlined">help</span></button>
             <input type="file" id="fileUpload" accept=".json" style="display: none;" onchange="loadProject(event)">
         </div>
     </div>
+
+    <script>
+        function logout() {
+            localStorage.removeItem('designer_auth');
+            window.location.href = '../index.html';
+        }
+    </script>
 
     <!-- HELP MODAL -->
     <div id="helpModal" class="modal-overlay">
@@ -512,10 +529,6 @@
                 <div class="help-item">
                     <strong>Measure (R)</strong>
                     <p>Drag between points to see exact production distances.</p>
-                </div>
-                <div class="help-item">
-                    <strong>Fabric (F)</strong>
-                    <p>Click 4 points to place a fabric piece. Select it to change type or cut it to the pattern.</p>
                 </div>
             </div>
         </div>
@@ -576,7 +589,11 @@
             <button onclick="setTool('curve')" id="tool_curve" class="icon-btn" data-tooltip="Curve (B)"><span class="material-symbols-outlined">gesture</span></button>
             <button onclick="setTool('mirror')" id="tool_mirror" class="icon-btn" data-tooltip="Mirror (I)"><span class="material-symbols-outlined">flip</span></button>
             <button onclick="setTool('text')" id="tool_text" class="icon-btn" data-tooltip="Text (V)"><span class="material-symbols-outlined">text_fields</span></button>
-            <button onclick="setTool('fabric')" id="tool_fabric" class="icon-btn" data-tooltip="Fabric (F)"><span class="material-symbols-outlined">texture</span></button>
+            <button onclick="setTool('button')" id="tool_button" class="icon-btn" data-tooltip="Add Button (K)"><span class="material-symbols-outlined">radio_button_checked</span></button>
+            <button onclick="setTool('zipper')" id="tool_zipper" class="icon-btn" data-tooltip="Add Zipper (Z)"><span class="material-symbols-outlined">reorder</span></button>
+            <button onclick="setTool('stitch')" id="tool_stitch" class="icon-btn" data-tooltip="Sewing Machine (W)"><span class="material-symbols-outlined">precision_manufacturing</span></button>
+            <button onclick="setTool('clip')" id="tool_clip" class="icon-btn" data-tooltip="Add Clip (C)"><span class="material-symbols-outlined">pin</span></button>
+            <button onclick="setTool('fabric')" id="tool_fabric" class="icon-btn" data-tooltip="Add Fabric (F)"><span class="material-symbols-outlined">texture</span></button>
         </div>
     </div>
 
@@ -668,42 +685,64 @@
            STATE
         ========================= */
         let views = {
-            'Front': { points: [], segments: [], grainlines: [], texts: [], fabrics: [] },
-            'Back': { points: [], segments: [], grainlines: [], texts: [], fabrics: [] },
-            'Side': { points: [], segments: [], grainlines: [], texts: [], fabrics: [] }
+            'Front': { points: [], segments: [], grainlines: [], texts: [], buttons: [], zippers: [], stitches: [], clips: [], fabrics: [] },
+            'Back': { points: [], segments: [], grainlines: [], texts: [], buttons: [], zippers: [], stitches: [], clips: [], fabrics: [] },
+            'Side': { points: [], segments: [], grainlines: [], texts: [], buttons: [], zippers: [], stitches: [], clips: [], fabrics: [] }
         };
         let currentViewName = 'Front';
         let showGhost = true;
+        let showMeasurements = false;
 
         let points = views[currentViewName].points;
         let segments = views[currentViewName].segments;
         let grainlines = views[currentViewName].grainlines;
         let texts = views[currentViewName].texts;
-        let fabrics = views[currentViewName].fabrics;
+        let buttons = views[currentViewName].buttons || (views[currentViewName].buttons = []);
+        let zippers = views[currentViewName].zippers || (views[currentViewName].zippers = []);
+        let stitches = views[currentViewName].stitches || (views[currentViewName].stitches = []);
+        let clips = views[currentViewName].clips || (views[currentViewName].clips = []);
+        let fabrics = views[currentViewName].fabrics || (views[currentViewName].fabrics = []);
         
         let selectedPoints = [];
-        let selectedFabrics = [];
-        let tempFabricPoints = [];
         let dragStartPos = null;
         let tool = "draw";
+        let drawingStartPoint = null;
+        let lastPoint = null;
         let gridSize = 25;
-
-        const fabricColors = {
-            'jean': '#3b82f6',
-            'leather': '#451a03',
-            'suede': '#b45309',
-            'cotton': '#f8fafc',
-            'silk': '#f472b6',
-            'canvas': '#d6d3d1',
-            'linen': '#fafaf9',
-            'wool': '#57534e'
-        };
 
         let currentSize = 'M';
         const sizeMultipliers = { 'XS': -2, 'S': -1, 'M': 0, 'L': 1, 'XL': 2, 'XXL': 3 };
         const sizeColors = { 'XS': '#94a3b8', 'S': '#38bdf8', 'M': '#22c55e', 'L': '#fbbf24', 'XL': '#f97316', 'XXL': '#ef4444' };
 
-        /* Undo / Redo */
+        let currentButtonType = 'standard';
+        let currentButtonSize = 12;
+        let currentZipperType = 'standard';
+        let currentNotchType = 'single';
+        let zipperStart = null;
+        let stitchStart = null;
+        
+        let currentMachine = 'industrial';
+        let currentStitch = 'straight';
+        let currentClipType = 'buckle';
+        let currentClipSize = 25;
+        
+        let currentFabricType = 'jean';
+        let fabricPoints = [];
+        const fabricColors = {
+            'jean': { fill: 'rgba(59, 130, 246, 0.4)', stroke: '#2563eb' },
+            'leather': { fill: 'rgba(120, 53, 15, 0.5)', stroke: '#78350f' },
+            'silk': { fill: 'rgba(224, 242, 254, 0.5)', stroke: '#7dd3fc' },
+            'cotton': { fill: 'rgba(248, 250, 252, 0.5)', stroke: '#cbd5e1' },
+            'linen': { fill: 'rgba(245, 245, 220, 0.5)', stroke: '#d2b48c' }
+        };
+
+        const machineStitches = {
+            'industrial': ['straight', 'backstitch'],
+            'zigzag': ['zigzag', 'satin'],
+            'overlock': ['3-thread', '4-thread'],
+            'coverstitch': ['double-needle', 'triple-needle']
+        };
+
         let undoStack = [];
         let redoStack = [];
 
@@ -714,6 +753,10 @@
             views[currentViewName].segments = segments;
             views[currentViewName].grainlines = grainlines;
             views[currentViewName].texts = texts;
+            views[currentViewName].buttons = buttons;
+            views[currentViewName].zippers = zippers;
+            views[currentViewName].stitches = stitches;
+            views[currentViewName].clips = clips;
             views[currentViewName].fabrics = fabrics;
 
             undoStack.push(JSON.stringify(views));
@@ -729,6 +772,10 @@
             views[currentViewName].segments = segments;
             views[currentViewName].grainlines = grainlines;
             views[currentViewName].texts = texts;
+            views[currentViewName].buttons = buttons;
+            views[currentViewName].zippers = zippers;
+            views[currentViewName].stitches = stitches;
+            views[currentViewName].clips = clips;
             views[currentViewName].fabrics = fabrics;
             redoStack.push(JSON.stringify(views));
 
@@ -740,10 +787,13 @@
             segments = views[currentViewName].segments;
             grainlines = views[currentViewName].grainlines;
             texts = views[currentViewName].texts || [];
+            buttons = views[currentViewName].buttons || [];
+            zippers = views[currentViewName].zippers || [];
+            stitches = views[currentViewName].stitches || [];
+            clips = views[currentViewName].clips || [];
             fabrics = views[currentViewName].fabrics || [];
             
             selectedPoints = [];
-            selectedFabrics = [];
             updateInspector();
             draw();
         }
@@ -756,6 +806,10 @@
             views[currentViewName].segments = segments;
             views[currentViewName].grainlines = grainlines;
             views[currentViewName].texts = texts;
+            views[currentViewName].buttons = buttons;
+            views[currentViewName].zippers = zippers;
+            views[currentViewName].stitches = stitches;
+            views[currentViewName].clips = clips;
             views[currentViewName].fabrics = fabrics;
             undoStack.push(JSON.stringify(views));
 
@@ -767,10 +821,13 @@
             segments = views[currentViewName].segments;
             grainlines = views[currentViewName].grainlines;
             texts = views[currentViewName].texts || [];
+            buttons = views[currentViewName].buttons || [];
+            zippers = views[currentViewName].zippers || [];
+            stitches = views[currentViewName].stitches || [];
+            clips = views[currentViewName].clips || [];
             fabrics = views[currentViewName].fabrics || [];
 
             selectedPoints = [];
-            selectedFabrics = [];
             updateInspector();
             draw();
         }
@@ -810,6 +867,10 @@
             views[currentViewName].segments = segments;
             views[currentViewName].grainlines = grainlines;
             views[currentViewName].texts = texts;
+            views[currentViewName].buttons = buttons;
+            views[currentViewName].zippers = zippers;
+            views[currentViewName].stitches = stitches;
+            views[currentViewName].clips = clips;
             views[currentViewName].fabrics = fabrics;
 
             if (format === 'json') {
@@ -817,15 +878,16 @@
                 downloadFile(dataStr, name + ".json");
             } 
             else if (format === 'svg') {
-                // Generate simple SVG from current view's segments
+                // Generate comprehensive SVG from current view
                 let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-                segments.forEach(s => {
-                    minX = Math.min(minX, s.a.x, s.b.x);
-                    minY = Math.min(minY, s.a.y, s.b.y);
-                    maxX = Math.max(maxX, s.a.x, s.b.x);
-                    maxY = Math.max(maxY, s.a.y, s.b.y);
-                });
                 
+                // Helper to update bounds
+                const updateBounds = (x, y) => {
+                    minX = Math.min(minX, x); maxX = Math.max(maxX, x);
+                    minY = Math.min(minY, y); maxY = Math.max(maxY, y);
+                };
+
+                points.forEach(p => updateBounds(p.x, p.y));
                 if (minX === Infinity) { minX = 0; minY = 0; maxX = 500; maxY = 500; }
                 
                 // Add padding
@@ -834,10 +896,50 @@
                 const height = maxY - minY;
 
                 let svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${minX} ${minY} ${width} ${height}" width="${width}px" height="${height}px">\n`;
-                svg += `  <style>line { stroke: black; stroke-width: 2px; stroke-linecap: round; }</style>\n`;
+                svg += `  <style>
+                    .seam { stroke: black; stroke-width: 2px; fill: none; stroke-linecap: round; }
+                    .grain { stroke: #a855f7; stroke-width: 2px; }
+                    .button { fill: #f8fafc; stroke: #cbd5e1; }
+                    .zipper { stroke: #1e293b; stroke-width: 10px; }
+                    .zipper-teeth { stroke: #fbbf24; stroke-width: 1px; }
+                    .text { font-family: 'Inter', sans-serif; font-size: 12px; fill: black; }
+                    .notch { stroke: #facc15; stroke-width: 2px; }
+                  </style>\n`;
+
+                // 1. Draw closed shape fills (if any)
+                // (Omitted for simplicity in standard SVG output, but could be added as <path>)
+
+                // 2. Draw Segments
                 segments.forEach(s => {
-                    svg += `  <line x1="${s.a.x}" y1="${s.a.y}" x2="${s.b.x}" y2="${s.b.y}" />\n`;
+                    if (s.cp1 && s.cp2) {
+                        svg += `  <path class="seam" d="M ${s.a.x} ${s.a.y} C ${s.cp1.x} ${s.cp1.y}, ${s.cp2.x} ${s.cp2.y}, ${s.b.x} ${s.b.y}" />\n`;
+                    } else {
+                        svg += `  <line class="seam" x1="${s.a.x}" y1="${s.a.y}" x2="${s.b.x}" y2="${s.b.y}" />\n`;
+                    }
                 });
+
+                // 3. Draw Notches
+                points.forEach(p => {
+                    if (p.notch) {
+                        svg += `  <circle class="notch" cx="${p.x}" cy="${p.y}" r="3" />\n`;
+                    }
+                });
+
+                // 4. Draw Grainlines
+                grainlines.forEach(g => {
+                    svg += `  <line class="grain" x1="${g.a.x}" y1="${g.a.y}" x2="${g.b.x}" y2="${g.b.y}" />\n`;
+                });
+
+                // 5. Draw Buttons
+                buttons.forEach(b => {
+                    svg += `  <circle class="button" cx="${b.x}" cy="${b.y}" r="${(b.size || 10)/2}" />\n`;
+                });
+
+                // 6. Draw Annotations
+                texts.forEach(t => {
+                    svg += `  <text class="text" x="${t.x}" y="${t.y}">${t.content}</text>\n`;
+                });
+
                 svg += `</svg>`;
 
                 const dataStr = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
@@ -877,10 +979,13 @@
                         segments = views[currentViewName].segments;
                         grainlines = views[currentViewName].grainlines;
                         texts = views[currentViewName].texts || [];
+                        buttons = views[currentViewName].buttons || [];
+                        zippers = views[currentViewName].zippers || [];
+                        stitches = views[currentViewName].stitches || [];
+                        clips = views[currentViewName].clips || [];
                         fabrics = views[currentViewName].fabrics || [];
                         
                         selectedPoints = [];
-                        selectedFabrics = [];
                         segmentStart = null;
                         updateInspector();
                         draw();
@@ -904,20 +1009,31 @@
             draw();
         }
 
+        function toggleMeasurements() {
+            showMeasurements = !showMeasurements;
+            document.getElementById("toggle_measurements").innerText = showMeasurements ? "Labels: ON" : "Labels: OFF";
+            document.getElementById("toggle_measurements").classList.toggle("active", showMeasurements);
+            draw();
+        }
+
         function setView(name) {
             // Save local variables back to the dictionary
             views[currentViewName].points = points;
             views[currentViewName].segments = segments;
             views[currentViewName].grainlines = grainlines;
             views[currentViewName].texts = texts;
-            views[currentViewName].fabrics = fabrics;
 
             currentViewName = name;
             points = views[currentViewName].points;
             segments = views[currentViewName].segments;
             grainlines = views[currentViewName].grainlines;
             texts = views[currentViewName].texts || (views[currentViewName].texts = []);
+            buttons = views[currentViewName].buttons || (views[currentViewName].buttons = []);
+            zippers = views[currentViewName].zippers || (views[currentViewName].zippers = []);
+            stitches = views[currentViewName].stitches || (views[currentViewName].stitches = []);
+            clips = views[currentViewName].clips || (views[currentViewName].clips = []);
             fabrics = views[currentViewName].fabrics || (views[currentViewName].fabrics = []);
+            fabricPoints = []; // Reset fabric selection
 
             document.querySelectorAll(".view-btn").forEach(b => b.classList.remove("active"));
             document.getElementById("view_" + name).classList.add("active");
@@ -926,7 +1042,6 @@
             if (showGhost) document.getElementById("toggle_ghost").classList.add("active");
 
             selectedPoints = [];
-            selectedFabrics = [];
             segmentStart = null;
             updateInspector();
             draw();
@@ -949,25 +1064,109 @@
                 return;
             }
 
-            if (selectedFabrics.length === 1) {
-                const f = selectedFabrics[0];
+            if (tool === "stitch") {
                 ins.innerHTML = `
                     <div class="inspector-group">
-                        <label>Fabric Type</label>
-                        <select onchange="saveHistory(); selectedFabrics[0].type = this.value; selectedFabrics[0].color = fabricColors[this.value] || '#888'; draw();">
-                            ${Object.keys(fabricColors).map(type => `<option value="${type}" ${f.type === type ? 'selected' : ''}>${type.charAt(0).toUpperCase() + type.slice(1)}</option>`).join('')}
+                        <label>Machine Type</label>
+                        <select onchange="currentMachine = this.value; updateStitchOptions();">
+                            <option value="industrial">Industrial</option>
+                            <option value="zigzag">Zig-Zag</option>
+                            <option value="overlock">Overlock (Serger)</option>
+                            <option value="coverstitch">Coverstitch</option>
                         </select>
                     </div>
                     <div class="inspector-group">
-                        <label>Custom Color</label>
-                        <input type="color" value="${f.color}" onchange="saveHistory(); selectedFabrics[0].color = this.value; draw();">
+                        <label>Stitch Type</label>
+                        <select id="stitchTypeSelect" onchange="currentStitch = this.value;"></select>
                     </div>
-                    <button class="modal-btn" onclick="saveHistory(); selectedFabrics[0].isCut = !selectedFabrics[0].isCut; draw(); updateInspector();">
-                        ${f.isCut ? 'Undo Cut' : 'Cut to Pattern'}
-                    </button>
-                    <button class="modal-btn" style="background:#ef4444; margin-top:8px;" onclick="saveHistory(); fabrics = fabrics.filter(fb => fb !== selectedFabrics[0]); selectedFabrics = []; updateInspector(); draw();">
-                        Delete Fabric
-                    </button>
+                    <div style="color:#64748b; font-size:11px; margin-top:8px;">Click two points to draw a stitch line, or click an existing segment.</div>
+                `;
+                updateStitchOptions();
+                return;
+            }
+
+            if (tool === "clip") {
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Clip Type</label>
+                        <select onchange="currentClipType = this.value;">
+                            <option value="buckle">Side-Release Buckle</option>
+                            <option value="suspender">Suspender Clip</option>
+                            <option value="bulldog">Bulldog Clip</option>
+                        </select>
+                    </div>
+                    <div class="inspector-group">
+                        <label>Size (mm)</label>
+                        <input type="number" value="${currentClipSize}" onchange="currentClipSize = parseFloat(this.value);">
+                    </div>
+                    <div style="color:#64748b; font-size:11px; margin-top:8px;">Click on the canvas to place clips.</div>
+                `;
+                return;
+            }
+
+            if (tool === "button") {
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Button Type</label>
+                        <select id="buttonTypeSelect" onchange="currentButtonType = this.value;">
+                            <option value="standard">Standard (T-Shirt)</option>
+                            <option value="jean">Jean Metal Button</option>
+                            <option value="denim">Denim Jacket Tack</option>
+                        </select>
+                    </div>
+                    <div class="inspector-group">
+                        <label>Size (mm)</label>
+                        <input type="number" value="${currentButtonSize}" onchange="currentButtonSize = parseFloat(this.value);">
+                    </div>
+                    <div style="color:#64748b; font-size:11px; margin-top:8px;">Click on the canvas to place buttons.</div>
+                `;
+                return;
+            }
+
+            if (tool === "zipper") {
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Zipper Type</label>
+                        <select id="zipperTypeSelect" onchange="currentZipperType = this.value;">
+                            <option value="standard">Standard (Plastic)</option>
+                            <option value="metal">Metal (Brass)</option>
+                            <option value="invisible">Invisible</option>
+                        </select>
+                    </div>
+                    <div style="color:#64748b; font-size:11px; margin-top:8px;">Click two points to define the zipper span.</div>
+                `;
+                return;
+            }
+
+            if (tool === "notch") {
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Notch Type</label>
+                        <select id="notchTypeSelect" onchange="currentNotchType = this.value;">
+                            <option value="single">Single (T)</option>
+                            <option value="double">Double (TT)</option>
+                            <option value="v">V-Notch</option>
+                        </select>
+                    </div>
+                    <div style="color:#64748b; font-size:11px; margin-top:8px;">Click on a point or segment to add/toggle notches.</div>
+                `;
+                return;
+            }
+
+            if (tool === "fabric") {
+                ins.innerHTML = `
+                    <div class="inspector-group">
+                        <label>Fabric Type</label>
+                        <select onchange="currentFabricType = this.value;">
+                            <option value="jean" ${currentFabricType === 'jean' ? 'selected' : ''}>Jean</option>
+                            <option value="leather" ${currentFabricType === 'leather' ? 'selected' : ''}>Leather</option>
+                            <option value="silk" ${currentFabricType === 'silk' ? 'selected' : ''}>Silk</option>
+                            <option value="cotton" ${currentFabricType === 'cotton' ? 'selected' : ''}>Cotton</option>
+                            <option value="linen" ${currentFabricType === 'linen' ? 'selected' : ''}>Linen</option>
+                        </select>
+                    </div>
+                    <div style="color:#64748b; font-size:11px; margin-top:8px;">Click points to define fabric area. Press <b>Enter</b> to place.</div>
+                    <div style="color:#64748b; font-size:11px; margin-top:4px;">Points selected: ${fabricPoints.length}</div>
                 `;
                 return;
             }
@@ -1001,8 +1200,22 @@
                     </div>
                 `;
             } else if (selectedPoints.length > 1) {
-                ins.innerHTML = `<div style="color:#fff; font-size:12px; font-weight:600;">${selectedPoints.length} points selected</div>
-                                 <div style="color:#64748b; font-size:11px; margin-top:4px;">Drag to move group</div>`;
+                // Multi-point selection summary and bulk grading
+                const avgGradeX = (selectedPoints.reduce((sum, p) => sum + (p.gradeX || 0), 0) / selectedPoints.length).toFixed(2);
+                const avgGradeY = (selectedPoints.reduce((sum, p) => sum + (p.gradeY || 0), 0) / selectedPoints.length).toFixed(2);
+
+                ins.innerHTML = `
+                    <div style="color:#fff; font-size:12px; font-weight:600; margin-bottom:12px;">${selectedPoints.length} points selected</div>
+                    <div class="inspector-group">
+                        <label>Bulk Grade X</label>
+                        <input type="number" value="${avgGradeX}" placeholder="Set for all..." onchange="saveHistory(); const val = parseFloat(this.value); selectedPoints.forEach(p => p.gradeX = val); draw();">
+                    </div>
+                    <div class="inspector-group">
+                        <label>Bulk Grade Y</label>
+                        <input type="number" value="${avgGradeY}" placeholder="Set for all..." onchange="saveHistory(); const val = parseFloat(this.value); selectedPoints.forEach(p => p.gradeY = val); draw();">
+                    </div>
+                    <div style="color:#64748b; font-size:11px; margin-top:8px; line-height:1.4;">Changes here apply to all selected points. Drag points to move the entire group.</div>
+                `;
             } else {
                 ins.innerHTML = '<div style="color:#64748b; font-size:12px;">Nothing selected</div>';
             }
@@ -1013,6 +1226,9 @@
         ========================= */
         function setTool(t) {
             tool = t;
+            drawingStartPoint = null;
+            lastPoint = null;
+            fabricPoints = []; // Reset fabric selection
 
             document.querySelectorAll(".toolbar button").forEach(b => {
                 b.classList.remove("active");
@@ -1139,57 +1355,6 @@
                 return;
             }
 
-            /* fabrics */
-            fabrics.forEach(f => {
-                ctx.save();
-                ctx.fillStyle = f.color || "#888";
-                ctx.globalAlpha = 0.6;
-                
-                if (f.isCut) {
-                    ctx.beginPath();
-                    // Create clipping path from all segments
-                    segments.forEach((s) => {
-                        let ax = s.a.x + (s.a.gradeX || 0) * m;
-                        let ay = s.a.y + (s.a.gradeY || 0) * m;
-                        let bx = s.b.x + (s.b.gradeX || 0) * m;
-                        let by = s.b.y + (s.b.gradeY || 0) * m;
-                        let a = worldToScreen(ax, ay);
-                        let b = worldToScreen(bx, by);
-                        
-                        ctx.moveTo(a.x, a.y);
-                        
-                        if (s.cp1 && s.cp2) {
-                            let cp1x = s.cp1.x + (s.a.gradeX || 0) * m;
-                            let cp1y = s.cp1.y + (s.a.gradeY || 0) * m;
-                            let cp2x = s.cp2.x + (s.b.gradeX || 0) * m;
-                            let cp2y = s.cp2.y + (s.b.gradeY || 0) * m;
-                            let cp1 = worldToScreen(cp1x, cp1y);
-                            let cp2 = worldToScreen(cp2x, cp2y);
-                            ctx.bezierCurveTo(cp1.x, cp1.y, cp2.x, cp2.y, b.x, b.y);
-                        } else {
-                            ctx.lineTo(b.x, b.y);
-                        }
-                    });
-                    ctx.clip();
-                }
-
-                ctx.beginPath();
-                f.points.forEach((p, idx) => {
-                    let s = worldToScreen(p.x, p.y);
-                    if (idx === 0) ctx.moveTo(s.x, s.y);
-                    else ctx.lineTo(s.x, s.y);
-                });
-                ctx.closePath();
-                ctx.fill();
-
-                if (selectedFabrics.includes(f)) {
-                    ctx.strokeStyle = "#fff";
-                    ctx.lineWidth = 2;
-                    ctx.stroke();
-                }
-                ctx.restore();
-            });
-
             /* ghosting other views */
             if (showGhost) {
                 ctx.strokeStyle = "rgba(255, 255, 255, 0.1)"; // faint white for other views
@@ -1201,17 +1366,6 @@
                             ctx.beginPath();
                             ctx.moveTo(a.x, a.y);
                             ctx.lineTo(b.x, b.y);
-                            ctx.stroke();
-                        });
-                        // Ghost fabrics too
-                        views[v].fabrics.forEach(f => {
-                            ctx.beginPath();
-                            f.points.forEach((p, idx) => {
-                                let s = worldToScreen(p.x, p.y);
-                                if (idx === 0) ctx.moveTo(s.x, s.y);
-                                else ctx.lineTo(s.x, s.y);
-                            });
-                            ctx.closePath();
                             ctx.stroke();
                         });
                     }
@@ -1285,32 +1439,31 @@
                         ctx.lineTo(b.x, b.y);
                     }
                     ctx.stroke();
+
+                    // Persistent Measurements
+                    if (showMeasurements && isBase) {
+                        ctx.save();
+                        let midX = (a.x + b.x) / 2;
+                        let midY = (a.y + b.y) / 2;
+                        let dx = Math.abs(bx - ax);
+                        let dy = Math.abs(by - ay);
+                        let len = Math.hypot(dx, dy);
+
+                        ctx.fillStyle = "rgba(255, 255, 255, 0.7)";
+                        ctx.font = "9px Inter";
+                        ctx.shadowBlur = 4;
+                        ctx.shadowColor = "rgba(0,0,0,0.5)";
+                        
+                        let label = `L: ${len.toFixed(1)}`;
+                        if (dx > 0 && dy > 0 && len > 50) label += ` (W:${dx.toFixed(0)} H:${dy.toFixed(0)})`;
+                        
+                        ctx.fillText(label, midX + 5, midY - 5);
+                        ctx.restore();
+                    }
                 });
                 ctx.restore();
             });
             ctx.lineWidth = 1; // Reset
-
-            /* fabric tool preview */
-            if (tool === "fabric" && tempFabricPoints.length > 0) {
-                ctx.strokeStyle = "rgba(99, 102, 241, 0.5)";
-                ctx.fillStyle = "rgba(99, 102, 241, 0.2)";
-                ctx.beginPath();
-                tempFabricPoints.forEach((p, idx) => {
-                    let s = worldToScreen(p.x, p.y);
-                    if (idx === 0) ctx.moveTo(s.x, s.y);
-                    else ctx.lineTo(s.x, s.y);
-                });
-                let m = worldToScreen(mouse.x, mouse.y);
-                ctx.lineTo(m.x, m.y);
-                ctx.stroke();
-                if (tempFabricPoints.length >= 2) ctx.fill();
-
-                tempFabricPoints.forEach(p => {
-                    let s = worldToScreen(p.x, p.y);
-                    ctx.fillStyle = "#6366f1";
-                    ctx.beginPath(); ctx.arc(s.x, s.y, 4, 0, Math.PI*2); ctx.fill();
-                });
-            }
 
             /* seam allowance preview */
             if (tool === "seam") {
@@ -1394,6 +1547,36 @@
                 ctx.fillText(`Y: ${dy.toFixed(1)}`, m.x + 5, m.y + 5);
             }
 
+            /* draw tool preview & measurement */
+            if (tool === "draw" && lastPoint) {
+                ctx.strokeStyle = "rgba(34, 197, 94, 0.5)";
+                ctx.setLineDash([5, 5]);
+                let a = worldToScreen(lastPoint.x, lastPoint.y);
+                let b = worldToScreen(mouse.x, mouse.y);
+                ctx.beginPath();
+                ctx.moveTo(a.x, a.y);
+                ctx.lineTo(b.x, b.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Measurement labels
+                let dx = Math.abs(mouse.x - lastPoint.x);
+                let dy = Math.abs(mouse.y - lastPoint.y);
+                let len = Math.hypot(dx, dy);
+
+                ctx.fillStyle = "#22c55e";
+                ctx.font = "bold 11px Inter";
+                let midX = (a.x + b.x) / 2;
+                let midY = (a.y + b.y) / 2;
+                
+                ctx.fillText(`L: ${len.toFixed(1)}`, midX + 10, midY - 10);
+                if (dx > 0 && dy > 0) {
+                    ctx.fillStyle = "rgba(34, 197, 94, 0.7)";
+                    ctx.font = "10px Inter";
+                    ctx.fillText(`W: ${dx.toFixed(1)}  H: ${dy.toFixed(1)}`, midX + 10, midY);
+                }
+            }
+
             /* grainline tool preview */
             if (tool === "grain" && grainlineStart) {
                 ctx.strokeStyle = "rgba(168, 85, 247, 0.5)";
@@ -1441,13 +1624,38 @@
                 }
                 
                 if (p.notch) {
+                    ctx.save();
                     ctx.strokeStyle = "#facc15";
-                    ctx.beginPath();
-                    ctx.moveTo(s.x - 5, s.y - 5);
-                    ctx.lineTo(s.x + 5, s.y + 5);
-                    ctx.moveTo(s.x + 5, s.y - 5);
-                    ctx.lineTo(s.x - 5, s.y + 5);
-                    ctx.stroke();
+                    ctx.lineWidth = 2 * zoom;
+                    
+                    // Find orientation based on connected segments if possible
+                    let angle = 0;
+                    let connected = segments.filter(s => s.a === p || s.b === p);
+                    if (connected.length > 0) {
+                        let s = connected[0];
+                        let other = (s.a === p) ? s.b : s.a;
+                        angle = Math.atan2(other.y - p.y, other.x - p.x) + Math.PI/2;
+                    }
+
+                    ctx.translate(s.x, s.y);
+                    ctx.rotate(angle);
+
+                    if (p.notchType === 'v') {
+                        ctx.beginPath();
+                        ctx.moveTo(-5*zoom, -5*zoom); ctx.lineTo(0, 0); ctx.lineTo(5*zoom, -5*zoom);
+                        ctx.stroke();
+                    } else if (p.notchType === 'double') {
+                        ctx.beginPath();
+                        ctx.moveTo(-3*zoom, -6*zoom); ctx.lineTo(-3*zoom, 6*zoom);
+                        ctx.moveTo(3*zoom, -6*zoom); ctx.lineTo(3*zoom, 6*zoom);
+                        ctx.stroke();
+                    } else {
+                        // Default single T
+                        ctx.beginPath();
+                        ctx.moveTo(0, -6*zoom); ctx.lineTo(0, 6*zoom);
+                        ctx.stroke();
+                    }
+                    ctx.restore();
                 }
             });
 
@@ -1457,6 +1665,306 @@
             texts.forEach(t => {
                 let s = worldToScreen(t.x, t.y);
                 ctx.fillText(t.content, s.x, s.y);
+            });
+
+            /* buttons */
+            buttons.forEach(b => {
+                let s = worldToScreen(b.x, b.y);
+                let radius = (b.size || 10) / 2 * zoom;
+                
+                ctx.save();
+                if (b.type === 'jean') {
+                    // Metallic Jean Button
+                    let grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, radius);
+                    grad.addColorStop(0, "#94a3b8");
+                    grad.addColorStop(1, "#475569");
+                    ctx.fillStyle = grad;
+                    ctx.strokeStyle = "#1e293b";
+                    ctx.lineWidth = 1;
+                    ctx.beginPath(); ctx.arc(s.x, s.y, radius, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    // Inner circle/dent
+                    ctx.beginPath(); ctx.arc(s.x, s.y, radius * 0.7, 0, Math.PI*2); ctx.stroke();
+                    // Engraving hint
+                    ctx.fillStyle = "rgba(0,0,0,0.2)";
+                    ctx.font = `${radius*0.5}px Inter`;
+                    ctx.textAlign = "center";
+                    ctx.fillText("DENIM", s.x, s.y + radius*0.15);
+                } else if (b.type === 'denim') {
+                    // Denim Jacket Button (Brass/Bronze)
+                    let grad = ctx.createRadialGradient(s.x, s.y, 0, s.x, s.y, radius);
+                    grad.addColorStop(0, "#fbbf24");
+                    grad.addColorStop(1, "#b45309");
+                    ctx.fillStyle = grad;
+                    ctx.strokeStyle = "#78350f";
+                    ctx.beginPath(); ctx.arc(s.x, s.y, radius, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    ctx.beginPath(); ctx.arc(s.x, s.y, radius * 0.8, 0, Math.PI*2); ctx.stroke();
+                } else {
+                    // Standard Button
+                    ctx.fillStyle = "#f8fafc";
+                    ctx.strokeStyle = "#cbd5e1";
+                    ctx.beginPath(); ctx.arc(s.x, s.y, radius, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                    // Holes
+                    ctx.fillStyle = "#94a3b8";
+                    let holeR = radius * 0.15;
+                    let offset = radius * 0.35;
+                    ctx.beginPath(); ctx.arc(s.x - offset, s.y - offset, holeR, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(s.x + offset, s.y - offset, holeR, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(s.x - offset, s.y + offset, holeR, 0, Math.PI*2); ctx.fill();
+                    ctx.beginPath(); ctx.arc(s.x + offset, s.y + offset, holeR, 0, Math.PI*2); ctx.fill();
+                }
+                ctx.restore();
+            });
+
+            /* stitches */
+            stitches.forEach(st => {
+                let a = worldToScreen(st.a.x, st.a.y);
+                let b = worldToScreen(st.b.x, st.b.y);
+                let dx = b.x - a.x;
+                let dy = b.y - a.y;
+                let len = Math.hypot(dx, dy);
+                let angle = Math.atan2(dy, dx);
+
+                ctx.save();
+                ctx.translate(a.x, a.y);
+                ctx.rotate(angle);
+                ctx.strokeStyle = "#cbd5e1";
+                ctx.lineWidth = 1 * zoom;
+
+                if (st.type === 'straight') {
+                    ctx.setLineDash([4 * zoom, 2 * zoom]);
+                    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(len, 0); ctx.stroke();
+                } else if (st.type === 'zigzag') {
+                    ctx.beginPath();
+                    for (let i = 0; i < len; i += 4 * zoom) {
+                        ctx.lineTo(i, -2 * zoom);
+                        ctx.lineTo(i + 2 * zoom, 2 * zoom);
+                    }
+                    ctx.stroke();
+                } else if (st.type === 'overlock') {
+                    ctx.beginPath();
+                    for (let i = 0; i < len; i += 5 * zoom) {
+                        ctx.moveTo(i, -3*zoom); ctx.lineTo(i+3*zoom, 3*zoom);
+                        ctx.moveTo(i+3*zoom, -3*zoom); ctx.lineTo(i, 3*zoom);
+                    }
+                    ctx.stroke();
+                } else if (st.type.includes('needle')) {
+                    let offset = 2 * zoom;
+                    ctx.setLineDash([4 * zoom, 2 * zoom]);
+                    ctx.beginPath(); ctx.moveTo(0, -offset); ctx.lineTo(len, -offset); ctx.stroke();
+                    ctx.beginPath(); ctx.moveTo(0, offset); ctx.lineTo(len, offset); ctx.stroke();
+                    if (st.type.includes('triple')) {
+                        ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(len, 0); ctx.stroke();
+                    }
+                } else {
+                    ctx.setLineDash([2 * zoom, 2 * zoom]);
+                    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(len, 0); ctx.stroke();
+                }
+                ctx.restore();
+            });
+
+            /* zippers */
+            zippers.forEach(z => {
+                let a = worldToScreen(z.a.x, z.a.y);
+                let b = worldToScreen(z.b.x, z.b.y);
+                let dx = b.x - a.x;
+                let dy = b.y - a.y;
+                let len = Math.hypot(dx, dy);
+                let angle = Math.atan2(dy, dx);
+
+                ctx.save();
+                ctx.translate(a.x, a.y);
+                ctx.rotate(angle);
+
+                if (z.type === 'invisible') {
+                    ctx.strokeStyle = "rgba(255,255,255,0.3)";
+                    ctx.lineWidth = 2;
+                    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(len, 0); ctx.stroke();
+                } else {
+                    // Tape
+                    ctx.strokeStyle = "#1e293b";
+                    ctx.lineWidth = 12 * zoom;
+                    ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(len, 0); ctx.stroke();
+
+                    // Teeth
+                    ctx.strokeStyle = (z.type === 'metal') ? "#fbbf24" : "#475569";
+                    ctx.lineWidth = 2 * zoom;
+                    let step = 4 * zoom;
+                    for (let i = 0; i < len; i += step) {
+                        ctx.beginPath(); ctx.moveTo(i, -3*zoom); ctx.lineTo(i, 3*zoom); ctx.stroke();
+                    }
+                    
+                    // Puller
+                    ctx.fillStyle = (z.type === 'metal') ? "#f59e0b" : "#64748b";
+                    ctx.fillRect(0, -4*zoom, 8*zoom, 8*zoom);
+                    ctx.beginPath(); ctx.arc(4*zoom, 8*zoom, 2*zoom, 0, Math.PI*2); ctx.fill();
+                }
+                ctx.restore();
+            });
+
+            /* clips */
+            clips.forEach(cl => {
+                let s = worldToScreen(cl.x, cl.y);
+                let w = cl.size * zoom;
+                let h = w * 0.6;
+                
+                ctx.save();
+                ctx.translate(s.x, s.y);
+                
+                if (cl.type === 'buckle') {
+                    ctx.fillStyle = "#1e293b";
+                    ctx.fillRect(-w/2, -h/2, w, h);
+                    ctx.fillStyle = "#334155";
+                    ctx.fillRect(-w*0.4, -h*0.3, w*0.8, h*0.6);
+                    ctx.strokeStyle = "#475569";
+                    ctx.strokeRect(-w/2, -h/2, w, h);
+                } else if (cl.type === 'suspender') {
+                    ctx.strokeStyle = "#94a3b8";
+                    ctx.lineWidth = 2 * zoom;
+                    ctx.strokeRect(-w*0.3, -h/2, w*0.6, h);
+                    ctx.fillStyle = "#cbd5e1";
+                    ctx.fillRect(-w/2, 0, w, h/2);
+                    ctx.strokeRect(-w/2, 0, w, h/2);
+                } else {
+                    // Bulldog Clip
+                    ctx.fillStyle = "#475569";
+                    ctx.beginPath();
+                    ctx.moveTo(-w/2, h/2); ctx.lineTo(w/2, h/2); ctx.lineTo(w/4, -h/2); ctx.lineTo(-w/4, -h/2);
+                    ctx.closePath(); ctx.fill();
+                    ctx.strokeStyle = "#94a3b8";
+                    ctx.beginPath();
+                    ctx.arc(0, -h*0.8, w/4, 0, Math.PI*2); ctx.stroke();
+                }
+                ctx.restore();
+            });
+
+            /* fabrics */
+            fabrics.forEach(f => {
+                const colors = fabricColors[f.type] || fabricColors.jean;
+                ctx.fillStyle = colors.fill;
+                ctx.strokeStyle = colors.stroke;
+                ctx.lineWidth = 2 * zoom;
+
+                ctx.beginPath();
+                f.points.forEach((p, idx) => {
+                    let px = p.x + (p.gradeX || 0) * sizeMultipliers[currentSize];
+                    let py = p.y + (p.gradeY || 0) * sizeMultipliers[currentSize];
+                    let s = worldToScreen(px, py);
+                    if (idx === 0) ctx.moveTo(s.x, s.y);
+                    else ctx.lineTo(s.x, s.y);
+                });
+                ctx.closePath();
+                ctx.fill();
+                ctx.stroke();
+            });
+
+            /* fabric creation preview */
+            if (tool === 'fabric' && fabricPoints.length > 0) {
+                ctx.fillStyle = 'rgba(255, 255, 255, 0.2)';
+                ctx.strokeStyle = '#fff';
+                ctx.setLineDash([5, 5]);
+                ctx.beginPath();
+                fabricPoints.forEach((p, idx) => {
+                    let s = worldToScreen(p.x, p.y);
+                    if (idx === 0) ctx.moveTo(s.x, s.y);
+                    else ctx.lineTo(s.x, s.y);
+                });
+                // Line to mouse
+                let mPos = worldToScreen(mouse.x, mouse.y);
+                ctx.lineTo(mPos.x, mPos.y);
+                ctx.stroke();
+                ctx.setLineDash([]);
+
+                // Highlight selected points
+                fabricPoints.forEach(p => {
+                    let s = worldToScreen(p.x, p.y);
+                    ctx.fillStyle = "#fff";
+                    ctx.beginPath();
+                    ctx.arc(s.x, s.y, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+
+            /* pieces & fills */
+            const pieces = [];
+            const visited = new Set();
+            segments.forEach(seg => {
+                if (visited.has(seg)) return;
+                const piece = { segments: [], points: new Set() };
+                const stack = [seg];
+                while (stack.length > 0) {
+                    const s = stack.pop();
+                    if (visited.has(s)) continue;
+                    visited.add(s);
+                    piece.segments.push(s);
+                    piece.points.add(s.a);
+                    piece.points.add(s.b);
+                    segments.forEach(other => {
+                        if (!visited.has(other) && (other.a === s.a || other.a === s.b || other.b === s.a || other.b === s.b)) {
+                            stack.push(other);
+                        }
+                    });
+                }
+                pieces.push(piece);
+            });
+
+            pieces.forEach(piece => {
+                // Check if piece is closed (every point in the piece has at least 2 connections within the piece)
+                const counts = new Map();
+                piece.segments.forEach(s => {
+                    counts.set(s.a, (counts.get(s.a) || 0) + 1);
+                    counts.set(s.b, (counts.get(s.b) || 0) + 1);
+                });
+                const isClosed = Array.from(piece.points).every(p => counts.get(p) >= 2);
+
+                if (isClosed && piece.segments.length > 2) {
+                    ctx.beginPath();
+                    // Simple ordering for convex-ish shapes (not perfect but good for preview)
+                    // Better approach: start at a point and follow segments
+                    let curr = piece.segments[0].a;
+                    let first = curr;
+                    let segs = [...piece.segments];
+                    ctx.moveTo(worldToScreen(curr.x + (curr.gradeX || 0) * m, curr.y + (curr.gradeY || 0) * m).x, 
+                               worldToScreen(curr.x + (curr.gradeX || 0) * m, curr.y + (curr.gradeY || 0) * m).y);
+                    
+                    for (let i = 0; i < piece.segments.length; i++) {
+                        let nextSegIdx = segs.findIndex(s => s.a === curr || s.b === curr);
+                        if (nextSegIdx === -1) break;
+                        let nextSeg = segs.splice(nextSegIdx, 1)[0];
+                        let nextP = (nextSeg.a === curr) ? nextSeg.b : nextSeg.a;
+                        let p = worldToScreen(nextP.x + (nextP.gradeX || 0) * m, nextP.y + (nextP.gradeY || 0) * m);
+                        
+                        if (nextSeg.cp1 && nextSeg.cp2) {
+                            let cp1 = (nextSeg.a === curr) ? nextSeg.cp1 : nextSeg.cp2;
+                            let cp2 = (nextSeg.a === curr) ? nextSeg.cp2 : nextSeg.cp1;
+                            let sCp1 = worldToScreen(cp1.x + (curr.gradeX || 0) * m, cp1.y + (curr.gradeY || 0) * m);
+                            let sCp2 = worldToScreen(cp2.x + (nextP.gradeX || 0) * m, cp2.y + (nextP.gradeY || 0) * m);
+                            ctx.bezierCurveTo(sCp1.x, sCp1.y, sCp2.x, sCp2.y, p.x, p.y);
+                        } else {
+                            ctx.lineTo(p.x, p.y);
+                        }
+                        curr = nextP;
+                    }
+                    ctx.fillStyle = "rgba(99, 102, 241, 0.05)";
+                    ctx.fill();
+
+                    // Piece-level Dimensions (Total W/H)
+                    let minX = Infinity, maxX = -Infinity, minY = Infinity, maxY = -Infinity;
+                    piece.points.forEach(p => {
+                        let px = p.x + (p.gradeX || 0) * m;
+                        let py = p.y + (p.gradeY || 0) * m;
+                        minX = Math.min(minX, px); maxX = Math.max(maxX, px);
+                        minY = Math.min(minY, py); maxY = Math.max(maxY, py);
+                    });
+                    
+                    let totalW = maxX - minX;
+                    let totalH = maxY - minY;
+                    let sMin = worldToScreen(minX, minY);
+                    let sMax = worldToScreen(maxX, maxY);
+                    
+                    ctx.fillStyle = "rgba(99, 102, 241, 0.8)";
+                    ctx.font = "bold 11px Inter";
+                    ctx.fillText(`TOTAL - W: ${totalW.toFixed(1)} H: ${totalH.toFixed(1)}`, sMin.x, sMax.y + 15);
+                }
             });
 
             requestAnimationFrame(draw);
@@ -1471,17 +1979,6 @@
                 x: Math.round(x / gridSize) * gridSize,
                 y: Math.round(y / gridSize) * gridSize
             };
-        }
-
-        function isPointInPoly(poly, pt) {
-            let c = false;
-            for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
-                if (((poly[i].y <= pt.y && pt.y < poly[j].y) || (poly[j].y <= pt.y && pt.y < poly[i].y)) &&
-                    (pt.x < (poly[j].x - poly[i].x) * (pt.y - poly[i].y) / (poly[j].y - poly[i].y) + poly[i].x)) {
-                    c = !c;
-                }
-            }
-            return c;
         }
 
         function findPoint(pos) {
@@ -1512,6 +2009,19 @@
             });
 
             return { segment: closestSegment, projection };
+        }
+
+        function updateStitchOptions() {
+            const sel = document.getElementById("stitchTypeSelect");
+            if (!sel) return;
+            sel.innerHTML = "";
+            machineStitches[currentMachine].forEach(st => {
+                const opt = document.createElement("option");
+                opt.value = st;
+                opt.textContent = st.charAt(0).toUpperCase() + st.slice(1).replace("-", " ");
+                sel.appendChild(opt);
+            });
+            currentStitch = machineStitches[currentMachine][0];
         }
 
         /* =========================
@@ -1560,39 +2070,42 @@
             let p = findPoint(pos);
 
             // Destructive / Major state actions save history
-            if (["draw", "addPoint", "move", "delete", "cut", "notch", "grain", "name", "align", "curve", "mirror", "text", "segment", "fabric"].includes(tool)) {
+            if (["draw", "addPoint", "move", "delete", "cut", "notch", "grain", "name", "align", "curve", "mirror", "text", "segment", "button", "zipper", "stitch", "clip", "fabric"].includes(tool)) {
                 if (tool === "move" && !p) { /* no move */ }
                 else if (tool === "select") { /* no history for selection */ }
                 else if (tool === "grade") { /* no history for grade tool activation */ }
-                else if (tool === "fabric" && tempFabricPoints.length < 3) { /* don't save yet */ }
                 else {
                     saveHistory();
                 }
             }
 
-            if (tool === "fabric") {
-                tempFabricPoints.push({ x: pos.x, y: pos.y });
-                if (tempFabricPoints.length === 4) {
-                    fabrics.push({
-                        points: [...tempFabricPoints],
-                        type: 'cotton',
-                        color: fabricColors['cotton'],
-                        isCut: false
-                    });
-                    tempFabricPoints = [];
-                    saveHistory();
-                }
-            }
-
             if (tool === "draw") {
-                let newP = { x: pos.x, y: pos.y };
-                points.push(newP);
-
-                if (points.length > 1) {
-                    segments.push({
-                        a: points[points.length - 2],
-                        b: newP
-                    });
+                if (p) {
+                    // Clicked an existing point
+                    if (p === drawingStartPoint && lastPoint && lastPoint !== p) {
+                        // Close the loop
+                        segments.push({ a: lastPoint, b: p });
+                        drawingStartPoint = null;
+                        lastPoint = null;
+                    } else {
+                        // Connect to existing point
+                        if (lastPoint && lastPoint !== p) {
+                            segments.push({ a: lastPoint, b: p });
+                        }
+                        if (!drawingStartPoint) drawingStartPoint = p;
+                        lastPoint = p;
+                    }
+                } else {
+                    // Create new point
+                    let newP = { x: pos.x, y: pos.y };
+                    points.push(newP);
+                    
+                    if (lastPoint) {
+                        segments.push({ a: lastPoint, b: newP });
+                    }
+                    
+                    if (!drawingStartPoint) drawingStartPoint = newP;
+                    lastPoint = newP;
                 }
             }
 
@@ -1602,22 +2115,39 @@
             }
 
             if (tool === "select" || tool === "grade") {
-                if (e.shiftKey || e.ctrlKey) {
-                    if (p) {
+                if (p) {
+                    if (e.shiftKey || e.ctrlKey) {
                         if (selectedPoints.includes(p)) {
                             selectedPoints = selectedPoints.filter(pt => pt !== p);
                         } else {
                             selectedPoints.push(p);
                         }
+                    } else {
+                        selectedPoints = [p];
                     }
                 } else {
-                    selectedPoints = p ? [p] : [];
-                    if (!p) {
-                        // Check for fabric selection
-                        let clickedFabric = [...fabrics].reverse().find(f => isPointInPoly(f.points, pos));
-                        selectedFabrics = clickedFabric ? [clickedFabric] : [];
+                    // Clicked empty space or segment?
+                    let { segment } = findClosestSegment(pos);
+                    if (segment) {
+                        // Select entire piece
+                        const piecePoints = new Set();
+                        const visited = new Set();
+                        const stack = [segment];
+                        while (stack.length > 0) {
+                            const s = stack.pop();
+                            if (visited.has(s)) continue;
+                            visited.add(s);
+                            piecePoints.add(s.a);
+                            piecePoints.add(s.b);
+                            segments.forEach(other => {
+                                if (!visited.has(other) && (other.a === s.a || other.a === s.b || other.b === s.a || other.b === s.b)) {
+                                    stack.push(other);
+                                }
+                            });
+                        }
+                        selectedPoints = Array.from(piecePoints);
                     } else {
-                        selectedFabrics = [];
+                        selectedPoints = [];
                     }
                 }
                 updateInspector();
@@ -1672,8 +2202,25 @@
                 }
             }
 
-            if (tool === "notch" && p) {
-                p.notch = true;
+            if (tool === "notch") {
+                if (p) {
+                    p.notch = !p.notch;
+                    p.notchType = currentNotchType;
+                } else {
+                    let { segment, projection } = findClosestSegment(pos);
+                    if (segment && projection) {
+                        let newP = { x: projection.x, y: projection.y, notch: true, notchType: currentNotchType };
+                        points.push(newP);
+                        
+                        // Split segment
+                        segments.push({ 
+                            a: segment.a, b: newP, 
+                            cp1: segment.cp1, cp2: segment.cp2 // Note: simple split, curves might need refinement
+                        });
+                        segments.push({ a: newP, b: segment.b });
+                        segments = segments.filter(s => s !== segment);
+                    }
+                }
             }
 
             if (tool === "grain") {
@@ -1753,6 +2300,65 @@
             if (tool === "text") {
                 let content = prompt("Annotation text:");
                 if (content) texts.push({ x: pos.x, y: pos.y, content });
+            }
+
+            if (tool === "button") {
+                buttons.push({
+                    x: pos.x,
+                    y: pos.y,
+                    type: currentButtonType,
+                    size: currentButtonSize
+                });
+            }
+
+            if (tool === "zipper") {
+                if (!zipperStart) {
+                    zipperStart = pos;
+                } else {
+                    zippers.push({
+                        a: zipperStart,
+                        b: pos,
+                        type: currentZipperType
+                    });
+                    zipperStart = null;
+                }
+            }
+
+            if (tool === "stitch") {
+                let { segment } = findClosestSegment(pos);
+                if (segment) {
+                    stitches.push({ a: segment.a, b: segment.b, type: currentStitch });
+                } else if (!stitchStart) {
+                    stitchStart = pos;
+                } else {
+                    stitches.push({ a: stitchStart, b: pos, type: currentStitch });
+                    stitchStart = null;
+                }
+            }
+
+            if (tool === "clip") {
+                clips.push({
+                    x: pos.x,
+                    y: pos.y,
+                    type: currentClipType,
+                    size: currentClipSize
+                });
+            }
+
+            if (tool === "fabric") {
+                if (p) {
+                    if (!fabricPoints.includes(p)) {
+                        fabricPoints.push(p);
+                    } else {
+                        // Toggle off if clicked again
+                        fabricPoints = fabricPoints.filter(fp => fp !== p);
+                    }
+                } else {
+                    let newP = { x: pos.x, y: pos.y };
+                    points.push(newP);
+                    fabricPoints.push(newP);
+                }
+                updateInspector();
             }
         });
 
@@ -1845,6 +2451,18 @@
             if (ctrl && key === 'z') { e.preventDefault(); undo(); return; }
             if (ctrl && key === 'y') { e.preventDefault(); redo(); return; }
 
+            if (key === 'enter' && tool === 'fabric' && fabricPoints.length >= 3) {
+                saveHistory();
+                fabrics.push({
+                    points: [...fabricPoints],
+                    type: currentFabricType
+                });
+                fabricPoints = [];
+                updateInspector();
+                draw();
+                return;
+            }
+
             if (key === 'd') setTool('draw');
             else if (key === 's') setTool('select');
             else if (key === 'm') setTool('move');
@@ -1862,12 +2480,16 @@
             else if (key === 'b') setTool('curve');
             else if (key === 'i') setTool('mirror');
             else if (key === 'v') setTool('text');
+            else if (key === 'k') setTool('button');
+            else if (key === 'z') setTool('zipper');
+            else if (key === 'w') setTool('stitch');
             else if (key === 'f') setTool('fabric');
             else if (key === '1') setView('Front');
             else if (key === '2') setView('Back');
             else if (key === '3') setView('Side');
             else if (key === '4') toggle3D();
             else if (key === 'h') toggleGhost();
+            else if (key === 'u') toggleMeasurements();
         });
 
         /* =========================
