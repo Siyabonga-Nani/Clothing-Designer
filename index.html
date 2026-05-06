@@ -3,188 +3,867 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Clothing Designer</title>
+  <title>Clothing Designer | Professional Pattern Suite</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <script src="https://unpkg.com/lucide@latest"></script>
 
   <style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto;
-}
+    :root {
+      --bg-dark: #05070a;
+      --bg-card: rgba(255, 255, 255, 0.03);
+      --accent: #4da6ff;
+      --accent-alt: #b84dff;
+      --text-main: #f8fafc;
+      --text-dim: #94a3b8;
+      --glass-border: rgba(255, 255, 255, 0.08);
+      --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
-body{
-  background:#0b0f1a;
-  color:white;
-  overflow:hidden;
-}
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', sans-serif;
+    }
 
-/* SPLASH */
-#splash{
-  position:fixed;
-  width:100%;
-  height:100%;
-  background:linear-gradient(135deg,#0b0f1a,#111827);
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-  z-index:10;
-  animation:fadeOut 1s ease forwards;
-  animation-delay:3s;
-}
+    h1, h2, h3, .logo {
+      font-family: 'Outfit', sans-serif;
+    }
 
-.logo{
-  font-size:28px;
-  font-weight:600;
-  background:linear-gradient(90deg,#4da6ff,#b84dff);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
-}
+    body {
+      background: var(--bg-dark);
+      color: var(--text-main);
+      overflow-x: hidden;
+      min-height: 100vh;
+    }
 
-.loader{
-  margin-top:20px;
-  width:40px;
-  height:40px;
-  border:3px solid rgba(255,255,255,0.1);
-  border-top:3px solid #4da6ff;
-  border-radius:50%;
-  animation:spin 1s linear infinite;
-}
+    /* BACKGROUND PARTICLES */
+    #bg-canvas {
+      position: fixed;
+      inset: 0;
+      z-index: -1;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 3s ease;
+    }
 
-@keyframes spin{
-  to{transform:rotate(360deg);}
-}
+    /* SPLASH SCREEN */
+    #splash {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      transition: opacity 0.8s ease, visibility 0.8s;
+    }
 
-@keyframes fadeOut{
-  to{
-    opacity:0;
-    visibility:hidden;
-  }
-}
+    #splash::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px);
+      background-size: 40px 40px;
+      mask-image: radial-gradient(circle at center, black, transparent 80%);
+      pointer-events: none;
+    }
 
-/* AUTH */
-#auth{
-  position:absolute;
-  width:100%;
-  height:100%;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
+    .logo-container {
+      text-align: center;
+      animation: logoReveal 1.2s ease-out forwards;
+    }
 
-.auth-box{
-  width:350px;
-  padding:30px;
-  background:rgba(255,255,255,0.03);
-  backdrop-filter:blur(20px);
-  border-radius:20px;
-  box-shadow:0 10px 40px rgba(0,0,0,0.5);
-}
+    .logo {
+      font-size: 48px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+      background: linear-gradient(135deg, #fff 0%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      margin-bottom: 8px;
+    }
 
-.auth-box h2{
-  margin-bottom:20px;
-}
+    .subtitle {
+      color: var(--text-dim);
+      font-size: 16px;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      font-weight: 300;
+    }
 
-.input{
-  width:100%;
-  padding:12px;
-  margin:10px 0;
-  border:none;
-  outline:none;
-  border-radius:10px;
-  background:rgba(255,255,255,0.05);
-  color:white;
-}
+    .loader-container {
+      margin-top: 48px;
+      width: 240px;
+      position: relative;
+    }
 
-.btn{
-  width:100%;
-  padding:12px;
-  margin-top:15px;
-  border:none;
-  border-radius:10px;
-  background:linear-gradient(90deg,#4da6ff,#b84dff);
-  color:white;
-  cursor:pointer;
-}
+    .loader-bar {
+      height: 2px;
+      width: 100%;
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 10px;
+      overflow: hidden;
+    }
 
-.switch{
-  margin-top:15px;
-  text-align:center;
-  font-size:14px;
-  cursor:pointer;
-  opacity:0.7;
-}
-</style>
+    .loader-progress {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, var(--accent), var(--accent-alt));
+      box-shadow: 0 0 15px var(--accent);
+      animation: load 2.5s cubic-bezier(0.65, 0, 0.35, 1) forwards;
+    }
+
+    .loading-text {
+      position: absolute;
+      top: 12px;
+      right: 0;
+      font-size: 12px;
+      color: var(--text-dim);
+      font-variant-numeric: tabular-nums;
+    }
+
+    @keyframes logoReveal {
+      0% { opacity: 0; transform: scale(0.9) translateY(20px); filter: blur(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); filter: blur(0); }
+    }
+
+    @keyframes load {
+      0% { width: 0%; }
+      30% { width: 40%; }
+      60% { width: 45%; }
+      100% { width: 100%; }
+    }
+
+    /* ONBOARDING */
+    #onboarding {
+      opacity: 0;
+      visibility: hidden;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 80px 24px;
+      transition: var(--transition);
+    }
+
+    #onboarding.active {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 60px;
+    }
+
+    .header h2 {
+      font-size: 42px;
+      font-weight: 700;
+      margin-bottom: 16px;
+    }
+
+    .header p {
+      color: var(--text-dim);
+      font-size: 18px;
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    .tiers {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 24px;
+      align-items: stretch;
+    }
+
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--glass-border);
+      border-radius: 24px;
+      padding: 32px;
+      display: flex;
+      flex-direction: column;
+      transition: var(--transition);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.15);
+      transform: translateY(-8px);
+    }
+
+    .card.featured {
+      background: linear-gradient(180deg, rgba(77, 166, 255, 0.1) 0%, rgba(5, 7, 10, 0) 100%);
+      border-color: rgba(77, 166, 255, 0.3);
+    }
+
+    .badge {
+      position: absolute;
+      top: 16px;
+      right: 16px;
+      background: var(--accent);
+      color: #000;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 12px;
+      border-radius: 100px;
+      text-transform: uppercase;
+    }
+
+    .card h3 {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    .price {
+      font-size: 36px;
+      font-weight: 700;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .price span {
+      font-size: 16px;
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+
+    .features {
+      list-style: none;
+      margin-bottom: 32px;
+      flex-grow: 1;
+    }
+
+    .features li {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .features li i {
+      color: var(--accent);
+      width: 18px;
+      height: 18px;
+    }
+
+    .select-btn {
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.05);
+      color: white;
+      font-weight: 600;
+      cursor: pointer;
+      transition: var(--transition);
+    }
+
+    .card.featured .select-btn {
+      background: linear-gradient(90deg, var(--accent), var(--accent-alt));
+      border: none;
+    }
+
+    .select-btn:hover {
+      background: rgba(255,255,255,0.1);
+      transform: scale(1.02);
+    }
+
+    .card.featured .select-btn:hover {
+      filter: brightness(1.1);
+      box-shadow: 0 0 20px rgba(77, 166, 255, 0.3);
+    }
+
+    /* FLOW CONTAINERS */
+    #flow-container {
+      display: none;
+      position: fixed;
+      inset: 0;
+      align-items: center;
+      justify-content: center;
+      z-index: 50;
+      background: var(--bg-dark);
+      opacity: 0;
+      transition: opacity 0.6s ease;
+    }
+
+    .flow-box {
+      width: 440px;
+      padding: 40px;
+      background: var(--bg-card);
+      backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+      border-radius: 32px;
+      text-align: center;
+      position: relative;
+    }
+
+    .step-section {
+      display: none;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .step-section.active {
+      display: block;
+    }
+
+    .flow-box h2 {
+      font-size: 28px;
+      margin-bottom: 12px;
+    }
+
+    .flow-box p {
+      color: var(--text-dim);
+      font-size: 14px;
+      margin-bottom: 32px;
+    }
+
+    .progress-dots {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 32px;
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      transition: var(--transition);
+    }
+
+    .dot.active {
+      background: var(--accent);
+      box-shadow: 0 0 10px var(--accent);
+      width: 20px;
+      border-radius: 4px;
+    }
+
+    .input-group {
+      margin-bottom: 20px;
+      text-align: left;
+    }
+
+    .input-group label {
+      display: block;
+      font-size: 12px;
+      color: var(--text-dim);
+      margin-bottom: 8px;
+      margin-left: 4px;
+    }
+
+    .input {
+      width: 100%;
+      padding: 16px;
+      border-radius: 14px;
+      border: 1px solid var(--glass-border);
+      background: rgba(255,255,255,0.02);
+      color: white;
+      font-size: 16px;
+      transition: var(--transition);
+    }
+
+    .input:focus {
+      outline: none;
+      border-color: var(--accent);
+      background: rgba(255,255,255,0.05);
+    }
+
+    .row {
+      display: flex;
+      gap: 12px;
+    }
+
+    .btn-primary {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: 14px;
+      background: linear-gradient(90deg, var(--accent), var(--accent-alt));
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+      transition: var(--transition);
+      margin-top: 10px;
+    }
+
+    .btn-primary:hover {
+      transform: scale(1.02);
+      filter: brightness(1.1);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+  </style>
 </head>
 
 <body>
 
-<!-- SPLASH -->
-<div id="splash">
-  <div class="logo">Clothing Designer</div>
-  <div class="loader"></div>
-</div>
+  <canvas id="bg-canvas"></canvas>
 
-<!-- AUTH -->
-<div id="auth">
-  <div class="auth-box">
-    <h2 id="title">Login</h2>
-
-    <input class="input" id="email" placeholder="Email">
-    <input class="input" id="password" type="password" placeholder="Password">
-
-    <button class="btn" onclick="handleAuth()">Login</button>
-
-    <div class="switch" onclick="toggleMode()" id="switchText">
-      Don't have an account? Sign Up
+  <!-- SPLASH SCREEN -->
+  <div id="splash">
+    <div class="logo-container">
+      <div class="logo">Clothing Designer</div>
+      <div class="subtitle">Professional Pattern Suite</div>
+    </div>
+    <div class="loader-container">
+      <div class="loader-bar">
+        <div class="loader-progress"></div>
+      </div>
+      <div class="loading-text"><span id="load-val">0</span>%</div>
     </div>
   </div>
-</div>
 
-<script>
-let isLogin = true;
+  <!-- ONBOARDING / SUBSCRIPTIONS -->
+  <div id="onboarding">
+    <div class="header">
+      <h2>Elevate Your Design</h2>
+      <p>Choose the perfect plan for your professional pattern-making journey.</p>
+    </div>
 
-/* SWITCH MODE */
-function toggleMode(){
-  isLogin = !isLogin;
-  document.getElementById("title").innerText = isLogin ? "Login" : "Sign Up";
-  document.querySelector(".btn").innerText = isLogin ? "Login" : "Create Account";
-  document.getElementById("switchText").innerText = isLogin
-    ? "Don't have an account? Sign Up"
-    : "Already have an account? Login";
-}
+    <div class="tiers">
+      <!-- Free -->
+      <div class="card" onclick="selectPlan('free')">
+        <h3>Free</h3>
+        <div class="price">$0</div>
+        <ul class="features">
+          <li><i data-lucide="check"></i> Basic drafting tools</li>
+          <li><i data-lucide="check"></i> 3 active projects</li>
+          <li><i data-lucide="check"></i> Export as PNG/JPG</li>
+          <li><i data-lucide="check"></i> Community forums</li>
+        </ul>
+        <button class="select-btn">Start Free</button>
+      </div>
 
-/* AUTH */
-function handleAuth(){
-  const email = document.getElementById("email").value;
-  const password = document.getElementById("password").value;
+      <!-- Solo -->
+      <div class="card" onclick="selectPlan('solo')">
+        <h3>Solo</h3>
+        <div class="price">$9<span>/mo</span></div>
+        <ul class="features">
+          <li><i data-lucide="check"></i> Unlimited projects</li>
+          <li><i data-lucide="check"></i> SVG & DXF export</li>
+          <li><i data-lucide="check"></i> Advanced Bezier tools</li>
+          <li><i data-lucide="check"></i> Symmetrical mirroring</li>
+          <li><i data-lucide="check"></i> Cloud storage</li>
+        </ul>
+        <button class="select-btn">Select Solo</button>
+      </div>
 
-  if(!email || !password){
-    alert("Fill all fields");
-    return;
-  }
+      <!-- Business -->
+      <div class="card featured" onclick="selectPlan('business')">
+        <div class="badge">Recommended</div>
+        <h3>Business</h3>
+        <div class="price">$29<span>/mo</span></div>
+        <ul class="features">
+          <li><i data-lucide="check"></i> Everything in Solo</li>
+          <li><i data-lucide="check"></i> Production-ready patterns</li>
+          <li><i data-lucide="check"></i> Custom grading rules</li>
+          <li><i data-lucide="check"></i> Specialized hardware tools</li>
+          <li><i data-lucide="check"></i> Team collaboration</li>
+        </ul>
+        <button class="select-btn">Select Business</button>
+      </div>
 
-  if(isLogin){
-    const savedUser = JSON.parse(localStorage.getItem("user"));
+      <!-- Corporate -->
+      <div class="card" onclick="selectPlan('corporate')">
+        <h3>Corporate</h3>
+        <div class="price">$99<span>/mo</span></div>
+        <ul class="features">
+          <li><i data-lucide="check"></i> Everything in Business</li>
+          <li><i data-lucide="check"></i> Advanced analytics</li>
+          <li><i data-lucide="check"></i> Enterprise API access</li>
+          <li><i data-lucide="check"></i> Dedicated account manager</li>
+          <li><i data-lucide="check"></i> Multi-seat management</li>
+        </ul>
+        <button class="select-btn">Contact Sales</button>
+      </div>
 
-    if(savedUser && savedUser.email === email && savedUser.password === password){
-      enterApp();
-    }else{
-      alert("Invalid login");
+      <!-- School -->
+      <div class="card" onclick="selectPlan('school')">
+        <h3>School</h3>
+        <div class="price">$5<span>/student</span></div>
+        <ul class="features">
+          <li><i data-lucide="check"></i> Educational curriculum</li>
+          <li><i data-lucide="check"></i> Teacher dashboard</li>
+          <li><i data-lucide="check"></i> Project sharing & review</li>
+          <li><i data-lucide="check"></i> Bulk license management</li>
+        </ul>
+        <button class="select-btn">For Schools</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FLOW CONTAINER (REGISTRATION / PAYMENT / SECURITY) -->
+  <div id="flow-container">
+    <div class="flow-box">
+      <div class="progress-dots">
+        <div class="dot active" id="dot-1"></div>
+        <div class="dot" id="dot-2"></div>
+        <div class="dot" id="dot-3"></div>
+      </div>
+
+      <div class="step-section active" id="step-registration">
+        <h2>Create Account</h2>
+        <p>Tell us a bit about yourself to get started.</p>
+        <div class="input-group">
+          <label>Full Name</label>
+          <input class="input" type="text" id="user-name" placeholder="John Doe">
+        </div>
+        <div class="input-group">
+          <label>Email Address</label>
+          <input class="input" type="email" id="user-email" placeholder="john@example.com">
+        </div>
+        <button class="btn-primary" onclick="nextStep()">Continue</button>
+        <p style="margin-top: 20px; font-size: 13px; color: var(--text-dim);">Already have an account? <a href="#" onclick="showLogin()" style="color: var(--accent); text-decoration: none;">Log In</a></p>
+      </div>
+
+      <!-- Step 2: Payment (Hidden for Free) -->
+      <div class="step-section" id="step-payment">
+        <h2>Secure Payment</h2>
+        <p>Enter your payment details to activate <span id="selected-plan-name">your plan</span>.</p>
+        
+        <div id="voucher-display" style="background: rgba(77, 166, 255, 0.1); border: 1px dashed var(--accent); border-radius: 12px; padding: 12px; margin-bottom: 20px; display: none;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 13px; color: var(--accent);">Voucher Applied!</span>
+            <span id="discount-amount" style="font-weight: 700; color: white;">-$0</span>
+          </div>
+        </div>
+
+        <div class="input-group">
+          <label>Card Number</label>
+          <input class="input" type="text" id="card-num" placeholder="0000 0000 0000 0000">
+        </div>
+        <div class="row">
+          <div class="input-group" style="flex:2">
+            <label>Expiry Date</label>
+            <input class="input" type="text" placeholder="MM/YY">
+          </div>
+          <div class="input-group" style="flex:1">
+            <label>CVC</label>
+            <input class="input" type="text" placeholder="123">
+          </div>
+        </div>
+        
+        <div class="input-group" style="margin-top: 10px;">
+          <label>Voucher Code</label>
+          <div style="display: flex; gap: 8px;">
+            <input class="input" type="text" id="voucher-input" placeholder="e.g. SAVE20" style="text-transform: uppercase;">
+            <button class="select-btn" onclick="applyVoucher()" style="width: auto; padding: 0 20px; font-size: 13px;">Apply</button>
+          </div>
+        </div>
+
+        <button class="btn-primary" onclick="nextStep()" style="margin-top: 20px;">Pay <span id="payment-total">$0</span> & Continue</button>
+      </div>
+
+      <!-- Step 3: Security -->
+      <div class="step-section" id="step-security">
+        <h2>Set Security</h2>
+        <p>Create a password to secure your professional workspace.</p>
+        <div class="input-group">
+          <label>Password</label>
+          <input class="input" type="password" id="pass-1" placeholder="••••••••">
+        </div>
+        <div class="input-group">
+          <label>Confirm Password</label>
+          <input class="input" type="password" id="pass-2" placeholder="••••••••">
+        </div>
+        <button class="btn-primary" onclick="finishFlow()">Create My Login</button>
+      </div>
+
+      <!-- Step 4: Login -->
+      <div class="step-section" id="step-login">
+        <h2>Welcome Back</h2>
+        <p>Enter your security password to access your workspace.</p>
+        <div class="input-group">
+          <label>Password</label>
+          <input class="input" type="password" id="login-pass" placeholder="••••••••">
+        </div>
+        <button class="btn-primary" onclick="verifyLogin()">Log In</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Initialize Lucide Icons
+    lucide.createIcons();
+
+    let currentStep = 1;
+    let selectedPlan = 'free';
+    let basePrice = 0;
+    let discount = 0;
+
+    const planPrices = {
+      'free': 0,
+      'solo': 9,
+      'business': 29,
+      'corporate': 99,
+      'school': 5
+    };
+
+    const vouchers = {
+      'SAVE20': 0.2, // 20% off
+      'SAVE50': 0.5, // 50% off
+      'PROFASHION': 0.3, // 30% off
+      'FREEBOOT': 1.0 // 100% off
+    };
+
+    // Particle System
+    const canvas = document.getElementById('bg-canvas');
+    const ctx = canvas.getContext('2d');
+    let particles = [];
+
+    class Particle {
+      constructor() {
+        this.init();
+      }
+      init() {
+        this.x = Math.random() * canvas.width;
+        this.y = Math.random() * canvas.height;
+        this.vx = (Math.random() - 0.5) * 0.3;
+        this.vy = (Math.random() - 0.5) * 0.3;
+        this.size = Math.random() * 2 + 1;
+      }
+      update() {
+        this.x += this.vx;
+        this.y += this.vy;
+        if (this.x < 0 || this.x > canvas.width) this.vx *= -1;
+        if (this.y < 0 || this.y > canvas.height) this.vy *= -1;
+      }
+      draw() {
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(77, 166, 255, 0.4)';
+        ctx.fill();
+      }
     }
-  }else{
-    localStorage.setItem("user", JSON.stringify({email,password}));
-    alert("Account created!");
-    toggleMode();
-  }
-}
 
-/* REDIRECT TO YOUR GITHUB APP */
-function enterApp(){
-  window.location.href = "app/app.html";
-}
-</script>
+    function initParticles() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+      particles = [];
+      for (let i = 0; i < 80; i++) {
+        particles.push(new Particle());
+      }
+    }
+
+    function animateParticles() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      particles.forEach(p => {
+        p.update();
+        p.draw();
+      });
+
+      // Draw connections
+      for (let i = 0; i < particles.length; i++) {
+        for (let j = i + 1; j < particles.length; j++) {
+          const dx = particles[i].x - particles[j].x;
+          const dy = particles[i].y - particles[j].y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          if (dist < 150) {
+            ctx.beginPath();
+            ctx.moveTo(particles[i].x, particles[i].y);
+            ctx.lineTo(particles[j].x, particles[j].y);
+            ctx.strokeStyle = `rgba(77, 166, 255, ${0.1 * (1 - dist/150)})`;
+            ctx.lineWidth = 1;
+            ctx.stroke();
+          }
+        }
+      }
+      requestAnimationFrame(animateParticles);
+    }
+
+    window.addEventListener('resize', () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    });
+
+    // Loader Percentage Animation
+    const loadVal = document.getElementById('load-val');
+    let progress = 0;
+    const interval = setInterval(() => {
+      progress += Math.floor(Math.random() * 5) + 1;
+      if (progress >= 100) {
+        progress = 100;
+        clearInterval(interval);
+      }
+      loadVal.innerText = progress;
+    }, 100);
+
+    // Transition Splash to Onboarding
+    setTimeout(() => {
+      const splash = document.getElementById('splash');
+      const onboarding = document.getElementById('onboarding');
+      
+      splash.style.opacity = '0';
+      
+      // Start Particles
+      initParticles();
+      animateParticles();
+      canvas.style.opacity = '0.5';
+
+      setTimeout(() => {
+        splash.style.display = 'none';
+        onboarding.classList.add('active');
+      }, 800);
+    }, 3000);
+
+    // Select Plan logic
+    function selectPlan(plan) {
+      selectedPlan = plan;
+      basePrice = planPrices[plan];
+      discount = 0;
+      localStorage.setItem('selectedPlan', plan);
+      document.getElementById('selected-plan-name').innerText = plan.charAt(0).toUpperCase() + plan.slice(1);
+      document.getElementById('payment-total').innerText = `$${basePrice}`;
+      
+      const onboarding = document.getElementById('onboarding');
+      const flow = document.getElementById('flow-container');
+      
+      onboarding.style.opacity = '0';
+      setTimeout(() => {
+        onboarding.style.display = 'none';
+        flow.style.display = 'flex';
+        requestAnimationFrame(() => {
+          flow.style.opacity = '1';
+        });
+      }, 400);
+    }
+
+    function applyVoucher() {
+      const input = document.getElementById('voucher-input').value.toUpperCase();
+      const display = document.getElementById('voucher-display');
+      const discountEl = document.getElementById('discount-amount');
+      const totalEl = document.getElementById('payment-total');
+
+      if (vouchers[input]) {
+        discount = basePrice * vouchers[input];
+        const newTotal = basePrice - discount;
+        
+        display.style.display = 'block';
+        discountEl.innerText = `-$${discount.toFixed(2)}`;
+        totalEl.innerText = `$${newTotal.toFixed(2)}`;
+        
+        alert("Voucher applied successfully!");
+      } else {
+        alert("Invalid voucher code.");
+        display.style.display = 'none';
+        discount = 0;
+        totalEl.innerText = `$${basePrice}`;
+      }
+    }
+
+    function nextStep() {
+      const s1 = document.getElementById('step-registration');
+      const s2 = document.getElementById('step-payment');
+      const s3 = document.getElementById('step-security');
+      const d1 = document.getElementById('dot-1');
+      const d2 = document.getElementById('dot-2');
+      const d3 = document.getElementById('dot-3');
+
+      if (currentStep === 1) {
+        const name = document.getElementById('user-name').value;
+        const email = document.getElementById('user-email').value;
+        if (!name || !email) {
+          alert("Please fill in your details.");
+          return;
+        }
+
+        s1.classList.remove('active');
+        d1.classList.remove('active');
+        
+        if (selectedPlan === 'free') {
+          // Skip payment
+          currentStep = 3;
+          s3.classList.add('active');
+          d3.classList.add('active');
+        } else {
+          currentStep = 2;
+          s2.classList.add('active');
+          d2.classList.add('active');
+        }
+      } else if (currentStep === 2) {
+        const card = document.getElementById('card-num').value;
+        if (card.length < 16) {
+          alert("Please enter a valid card number.");
+          return;
+        }
+
+        const btn = document.querySelector('#step-payment .btn-primary');
+        const originalText = btn.innerText;
+        btn.innerText = 'Approving Payment...';
+        btn.style.pointerEvents = 'none';
+
+        // Simulate approval
+        setTimeout(() => {
+          s2.classList.remove('active');
+          d2.classList.remove('active');
+          currentStep = 3;
+          s3.classList.add('active');
+          d3.classList.add('active');
+        }, 2000);
+      }
+    }
+
+    function showLogin() {
+      document.querySelectorAll('.step-section').forEach(s => s.classList.remove('active'));
+      document.getElementById('step-login').classList.add('active');
+      document.querySelector('.progress-dots').style.display = 'none';
+    }
+
+    function verifyLogin() {
+      const pass = document.getElementById('login-pass').value;
+      const savedPass = localStorage.getItem('user_pass');
+      
+      if (pass === savedPass) {
+        const btn = document.querySelector('#step-login .btn-primary');
+        btn.innerText = 'Authenticating...';
+        localStorage.setItem('designer_auth', 'true');
+        setTimeout(() => {
+          window.location.href = 'app/index.html';
+        }, 1000);
+      } else {
+        alert("Invalid password.");
+      }
+    }
+
+    function finishFlow() {
+      const pass = document.getElementById('pass-1').value;
+      const confirm = document.getElementById('pass-2').value;
+
+      if (!pass || pass !== confirm) {
+        alert("Passwords do not match!");
+        return;
+      }
+
+      const btn = document.querySelector('#step-security .btn-primary');
+      btn.innerText = 'Creating Workspace...';
+      btn.style.pointerEvents = 'none';
+      
+      // Save session
+      localStorage.setItem('designer_auth', 'true');
+      localStorage.setItem('user_pass', pass);
+      
+      setTimeout(() => {
+        window.location.href = 'app/index.html';
+      }, 1500);
+    }
+  </script>
 
 </body>
 </html>
